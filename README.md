@@ -1,5 +1,6 @@
 # "Papers, Please" TASbot
 A "Papers, Please" TASbot that offers a programmable interface with the game.
+
 Huge thanks to HowToCantaloupe for helping throughout the development process, giving ideas, as well as offering information about the how the game is actually built, and, in general, providing a lot of knowledge about the game!
 
 # Usage
