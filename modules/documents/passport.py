@@ -414,7 +414,7 @@ class Passport:
             tas.needId = True
             return False
 
-        if tas.date >= Passport.TAS.DAY_29 and tas.needObri > 0:
+        if tas.date >= Passport.TAS.DAY_29 and tas.needObri > 0 and self.type_.nation == Nation.OBRISTAN:
             tas.needObri -= 1
             return True
 
