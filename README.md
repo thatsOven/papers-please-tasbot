@@ -5,4 +5,5 @@ Huge thanks to HowToCantaloupe for helping throughout the development process, g
 
 # Usage
 After installing all requirements (`requirements.txt`), run `tas.py` to start the bot.
+
 NOTE: this bot is currently only tested for Papers Please v1.1.67-S. it will NOT work for the latest version of the game.
