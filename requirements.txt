@@ -1,0 +1,6 @@
+pillow
+pyautogui
+numpy
+opencv-python
+deskew
+scikit-image
