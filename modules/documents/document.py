@@ -43,7 +43,7 @@ class Document(ABC):
         return False
     
     def checkDiscrepanciesInternal(self, tas) -> bool:
-        if tas.date < Document.TAS.DAY_19:
+        if tas.date < Document.TAS.DAY_18:
             return self.checkDiscrepancies(tas)
         return self.checkDiscrepanciesWithReason(tas)
 

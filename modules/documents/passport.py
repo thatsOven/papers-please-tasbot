@@ -421,7 +421,7 @@ class Passport:
         return tas.date >= Passport.TAS.DAY_28 and self.type_.nation == Nation.ARSTOTZKA
     
     def checkDiscrepanciesInternal(self, tas) -> bool:
-        if tas.date < Passport.TAS.DAY_19:
+        if tas.date < Passport.TAS.DAY_18:
             return self.checkDiscrepancies(tas)
         return self.checkDiscrepanciesWithReason(tas)
             
