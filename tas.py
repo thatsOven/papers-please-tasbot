@@ -49,7 +49,7 @@ from datetime          import date, timedelta
 from skimage.color     import rgb2gray
 from skimage.transform import rotate
 from typing            import Callable, ClassVar, Any
-import win32gui, time, os, math, pyautogui as pg, numpy as np
+import win32gui, win32com.client, time, os, math, pyautogui as pg, numpy as np
 
 from modules.constants.delays import *
 from modules.constants.screen import *
@@ -2082,6 +2082,8 @@ class TAS:
             
             if act in (0, 1):
                 self.hwnd = self.getWinHWDN()
+                shell = win32com.client.Dispatch("WScript.Shell")
+                shell.SendKeys('%')
                 win32gui.SetForegroundWindow(self.hwnd)
 
             match act:
