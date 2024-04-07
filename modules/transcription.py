@@ -240,6 +240,8 @@ class Transcription:
                     self.__purpose.message = message
 
                     if self.__purpose.status in (Purpose.ASYLUM, Purpose.DIPLOMAT, Purpose.IMMIGRATION):
+                        getDuration = False
+                        
                         self.__duration.status  = PERMIT_DURATIONS["FOREVER"]
                         self.__duration.message = message
                     continue
