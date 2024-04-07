@@ -157,8 +157,12 @@ class TAS:
     lastGiveArea: np.ndarray | None
     wanted: list[tuple[int, int]]
     
-    documentStack: Any
-    transcription: Any
+    if "MAKING_DEF" in os.environ:
+        documentStack: Any
+        transcription: Any
+    else:
+        documentStack: DocumentStack
+        transcription: Transcription
 
     def __init__(self):
         pg.PAUSE = 0.05 

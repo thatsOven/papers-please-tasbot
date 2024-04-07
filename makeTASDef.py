@@ -2,7 +2,6 @@
 # it's used for better syntax highlighting
 
 import inspect, os
-from tas import TAS
 
 TAB = "    "
 
@@ -29,6 +28,7 @@ class TASDef:
 
 if __name__ == "__main__":
     os.environ["MAKING_DEF"] = ""
+    from tas import TAS
 
     result = BASE_CODE
 
