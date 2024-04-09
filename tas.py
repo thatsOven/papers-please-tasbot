@@ -77,6 +77,7 @@ from runs.run import Run
 
 import json
 import logging
+import logging.config
 logger = logging.getLogger(__name__)
 
 
