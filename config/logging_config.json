@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "disable_existing_loggers": false,
+  "filters": {
+    "skipPngImagePlugin": {
+      "()": "__main__.FilterVenvLogging"
+    }
+  },
+  "formatters": {
+    "simple": {
+      "format": "[%(levelname)s]: %(message)s"
+    },
+    "detailed": {
+      "format": "[%(levelname)s|%(module)s|L%(lineno)d] %(asctime)s: %(message)s"
+    }
+  },
+  "handlers": {
+    "stdout": {
+      "class": "logging.StreamHandler",
+      "level": "INFO",
+      "formatter": "simple",
+      "stream": "ext://sys.stdout"
+    },
+    "file": {
+      "class": "logging.handlers.RotatingFileHandler",
+      "level": "DEBUG",
+      "formatter": "detailed",
+      "filename": "debug.log",
+      "maxBytes": 100000,
+      "backupCount": 3,
+      "filters": [
+        "skipPngImagePlugin"
+      ]
+    }
+  },
+  "loggers": {
+    "root": {
+      "level": "DEBUG",
+      "handlers": [
+        "stdout",
+        "file"
+      ]
+    }
+  }
+}

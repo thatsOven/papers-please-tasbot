@@ -12,6 +12,9 @@ from modules.utils              import *
 
 from modules.documents.arstotzkanID import ArstotzkanID, District
 
+import logging
+logger = logging.getLogger(__name__)
+
 class City(Enum):
     (
         ST_MARMERO, GLORIAN, OUTER_GROUSE, 
@@ -74,7 +77,7 @@ class PassportData:
 
 class PassportType:
     def __init__(self, nation, baseDir, cities, layout):
-        print(f"Initializing passport for {nation}...")
+        logger.info(f"Initializing passport for {nation}...")
         self.nation: Nation       = nation
         self.outerTexture         = Image.open(os.path.join(baseDir, "outer.png")).convert("RGB")
         self.cities               = cities

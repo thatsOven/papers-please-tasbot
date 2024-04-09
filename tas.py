@@ -75,6 +75,18 @@ from modules.documents.passport       import (
 
 from runs.run import Run
 
+import json
+import logging
+logger = logging.getLogger(__name__)
+
+
+class FilterVenvLogging(logging.Filter):
+    """Without this, log file is filled with debug logs from imported modules."""
+
+    def filter(self, record):
+        return 'venv' not in record.pathname
+
+
 class TAS:
     DEBUG: ClassVar[bool] = True
 
@@ -161,7 +173,10 @@ class TAS:
     transcription: Any
 
     def __init__(self):
-        pg.PAUSE = 0.05 
+        self.setupLogging()
+
+        pg.useImageNotFoundException(False)
+        pg.PAUSE = 0.05
         self.hwnd = None
 
         self.checkHorn = False
@@ -197,7 +212,7 @@ class TAS:
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
 
-        print("Preparing generic assets...")
+        logger.info("Preparing generic assets...")
         TAS.NEXT_BUBBLE = np.asarray(Image.open(
             os.path.join(TAS.ASSETS, "nextBubble.png")
         ).convert("RGB"))
@@ -450,7 +465,7 @@ class TAS:
         Transcription.load()
 
         for document in TAS.DOCUMENTS:
-            print(f"Initializing {document.__name__}...")
+            logger.info(f"Initializing {document.__name__}...")
             document.TAS = TAS
             document.load()
 
@@ -461,13 +476,13 @@ class TAS:
 
         TAS.RUNS = []
         for run in Run.__subclasses__():
-            print(f'Initializing Run "{run.__name__}"...')
+            logger.info(f'Initializing Run "{run.__name__}"...')
             run.TAS = TAS
             inst = run()
             inst.tas = self
             TAS.RUNS.append(inst)
 
-        print("TASBOT initialized!")
+        logger.info("TASBOT initialized!")
 
     @classmethod
     def getWinHWDN(self) -> str:
@@ -483,6 +498,13 @@ class TAS:
                 return h
             
         raise TASException('No "Papers Please" window was found')
+
+    @staticmethod
+    def setupLogging():
+        config_path = os.path.join(TAS.PROGRAM_DIR, "config/logging_config.json")
+        with open(config_path) as f:
+            config = json.load(f)
+        logging.config.dictConfig(config)
 
     def getScreen(self) -> Image.Image:
         return ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB")
@@ -686,7 +708,7 @@ class TAS:
             self.waitFor(TAS.BUTTONS["next"])
             self.click(INTRO_BUTTON)
 
-        print(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
+        logger.info(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
 
         if credits:
             self.waitFor(TAS.BUTTONS["credits"])
@@ -1112,7 +1134,8 @@ class TAS:
         while True:
             self.moveTo(PAPER_POS)
             doc: Document | Passport = self.docScan(move = False)
-            if TAS.DEBUG: print(doc)
+            if TAS.DEBUG: logger.info(doc)
+            else:         logger.debug(doc)
             self.moveTo(PAPER_SCAN_POS)
 
             if type(doc) is Passport:
