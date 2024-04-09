@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing import Iterable
 
 Point = collections.namedtuple("Point", "x y")
-Area = collections.namedtuple("Area", "x1 y1 x2 y2")
+Area = collections.namedtuple("Area", "left top right bottom")
 Region = collections.namedtuple("AreaWH", "x y width height")
 
 
@@ -86,8 +86,9 @@ BOOTH_LEFT_PAPERS = Point(89, 246)
 
 # Right Booth
 BOOTH_STAMP_BAR_TOGGLE = Point(566, 158)
-BOOTH_PASSPORT_FLING = Point(280, 240)
+BOOTH_PASSPORT_FLING = Point(280, 235)
 BOOTH_PASSPORT_REGRAB = Point(442, 227)
+BOOTH_PASSPORT_FLING_CORRECTION = Point(363, 302)
 
 STAMP_APPROVE = Point(487, 140)
 STAMP_DENY = Point(366, 140)
@@ -362,8 +363,8 @@ PASSPORT_CONFISCATE_POS = Point(470, 665)
 
 PERSON_AREA = Area(8, 237, 363, 445)
 DRAG_TO_WITH_GIVE_AMPLITUDE = Point(
-    PERSON_AREA.x2 - PERSON_POS.x - 100,
-    PERSON_AREA.y2 - PERSON_POS.y - 50
+    PERSON_AREA.right - PERSON_POS.x - 100,
+    PERSON_AREA.bottom - PERSON_POS.y - 50
 )
 
 DRAG_TO_WITH_GIVE_THETA_INC = Point(0.75, 0.5)

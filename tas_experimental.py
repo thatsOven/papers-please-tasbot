@@ -3,7 +3,8 @@
 # it currently doesn't do much, but it's here as a start.
 # 
 # for the bot to work, the game language has to be english, 
-# the date format must be 1982-1-23, and the game must be fullscreen in 1920x1080 resolution
+# the date format must be 1982-1-23, and the game must be fullscreen in 1920x1080 resolution on the primary monitor
+
 import json
 import logging
 import logging.config
@@ -12,6 +13,7 @@ import pathlib
 import time
 from typing import ClassVar, Callable
 
+import cv2
 import dxcam
 import numpy as np
 import pyautogui as pg
@@ -19,8 +21,8 @@ import win32com.client
 import win32gui
 from PIL import Image
 
-import modules.constants.screen_new as screen
 import modules.constants.delays as delays
+import modules.constants.screen_new as screen
 from modules.documents.passport import City, Nation, PassportData, PassportType
 from modules.frames import Frames
 from runs.AllEndings import AllEndings
@@ -157,12 +159,33 @@ class TAS:
 
     IMAGE_NEXT_X = np.asarray(Image.open(
         os.path.join(ASSETS, "nextBubbleX.png")
-    ).convert("RGB")),
+    ).convert("RGB"))
+    IMAGE_CORNER_PASSPORT_ARSTOTZKA = np.asarray(Image.open(
+        os.path.join(ASSETS, "paper_corners/passport_arstotzka.png")
+    ).convert("RGB"))
+    IMAGE_CORNER_PASSPORT_IMPOR = np.asarray(Image.open(
+        os.path.join(ASSETS, "paper_corners/passport_impor.png")
+    ).convert("RGB"))
+    IMAGE_CORNER_PASSPORT_KOLECHIA = np.asarray(Image.open(
+        os.path.join(ASSETS, "paper_corners/passport_kolechia.png")
+    ).convert("RGB"))
+    IMAGE_CORNER_PASSPORT_REPUBLIA = np.asarray(Image.open(
+        os.path.join(ASSETS, "paper_corners/passport_republia.png")
+    ).convert("RGB"))
+    IMAGE_CORNER_PASSPORTS = [
+        IMAGE_CORNER_PASSPORT_ARSTOTZKA,
+        IMAGE_CORNER_PASSPORT_IMPOR,
+        IMAGE_CORNER_PASSPORT_KOLECHIA,
+        IMAGE_CORNER_PASSPORT_REPUBLIA
+    ]
 
     COLOR_BLACK = np.array([0, 0, 0])
     COLOR_BOOTH_WALL = np.array([50, 37, 37])
     COLOR_BOOTH_LEFT_DESK = np.array([132, 138, 107])
     COLOR_SHUTTER = np.array([53, 45, 41])
+    COLOR_ARSTOTZKA_PASSPORT = np.array([59, 72, 59])
+
+    PIXEL_SIZE = 3
 
     def __init__(self):
         self.setupLogging()
@@ -185,12 +208,8 @@ class TAS:
         self.entrant_start_time: float = 0
         self.frames = Frames()
 
-        self.camera = dxcam.create(output_idx=1)
-        x1, y1, x2, y2 = self.areaOffset(0, 0, 570, 320)
-        while x1 < 0:
-            x1 += 1920
-            x2 += 1920
-        self.camera.start(region=(x1, y1, x2, y2))
+        self.camera = dxcam.create()
+        self.camera.start(region=self.areaOffset((0, 0, 570, 320)))
 
     @classmethod
     def getWinHWND(cls) -> str:
@@ -214,34 +233,44 @@ class TAS:
             config = json.load(f)
         logging.config.dictConfig(config)
 
-    def pointOffset(self, x: int, y: int) -> tuple[int, int]:
+    @staticmethod
+    def pixelToCoordinate(point: screen.Point) -> screen.Point:
+        return screen.Point(point[0] * TAS.PIXEL_SIZE, point[1] * TAS.PIXEL_SIZE)
+
+    @staticmethod
+    def coordinateToPixel(point: screen.Point) -> screen.Point:
+        return screen.Point(point[0] // TAS.PIXEL_SIZE, point[1] // TAS.PIXEL_SIZE)
+
+    def pointOffset(self, point: screen.Point) -> screen.Point:
         window_x, window_y, _, _ = win32gui.GetWindowRect(self.hwnd)
         return screen.Point(
-            3 * x + window_x + screen.ZERO_POINT.x,
-            3 * y + window_y + screen.ZERO_POINT.y,
+            TAS.PIXEL_SIZE * point[0] + window_x + screen.ZERO_POINT.x,
+            TAS.PIXEL_SIZE * point[1] + window_y + screen.ZERO_POINT.y,
         )
 
-    def areaOffset(self, x1: int, y1: int, x2: int, y2: int) -> tuple[int, int, int, int]:
+    def areaOffset(self, area: screen.Area) -> screen.Area:
         window_x, window_y, _, _ = win32gui.GetWindowRect(self.hwnd)
-        return screen.Area(*self.pointOffset(x1, y1), *self.pointOffset(x2, y2))
+        return screen.Area(*self.pointOffset((area[0], area[1])), *self.pointOffset((area[2], area[3])))
 
-    def regionOffset(self, x: int, y: int, width: int, height: int) -> tuple[int, int, int, int]:
+    def regionOffset(self, region: screen.Region) -> screen.Region:
         window_x, window_y, _, _ = win32gui.GetWindowRect(self.hwnd)
-        return screen.Region(*self.pointOffset(x, y), width, height)
+        return screen.Region(*self.pointOffset((region[0], region[1])), *self.pixelToCoordinate((region[2], region[3])))
 
-    def getArea(self, area: screen.Area) -> np.array:
+    def getArea(self, area: screen.Area) -> np.ndarray:
         """Get np array of pixels in screen area. DO NOT offset area coordinates"""
         left, top, right, bottom = area
+        left, top = self.pixelToCoordinate((left, top))
+        right, bottom = self.pixelToCoordinate((right, bottom))
         frame = self.camera.get_latest_frame()
-        return frame[3 * top:3 * bottom, 3 * left:3 * right]
+        return frame[top:bottom, left:right]
 
-    def getPixel(self, point: screen.Point) -> np.array:
+    def getPixel(self, point: screen.Point) -> np.ndarray:
         """Get np array of colors at pixel location on screen. DO NOT offset point coordinates"""
-        x, y = point
+        x, y = self.pixelToCoordinate(point)
         frame = self.camera.get_latest_frame()
-        return frame[3 * y, 3 * x]
+        return frame[y, x]
 
-    def quickDrag(self, from_point: screen.Point, to_point: screen.Point) -> None:
+    def drag(self, from_point: screen.Point, to_point: screen.Point, drop_delay_frames: int = 2) -> None:
         logger.debug(f'Drag from {from_point} to {to_point}')
         self.frames.sleep(2)
         self.moveTo(from_point)
@@ -249,13 +278,12 @@ class TAS:
         pg.mouseDown()
         self.frames.sleep(2)
         self.moveTo(to_point)
-        self.frames.sleep(2)
+        self.frames.sleep(drop_delay_frames)
         pg.mouseUp()
         self.frames.sleep(2)
 
     def moveTo(self, point: screen.Point) -> None:
-        logger.debug(f'Move to {point}')
-        pg.moveTo(self.pointOffset(*point))
+        pg.moveTo(self.pointOffset(point))
 
     def click(self, at: tuple[int, int], clicks: int = 1, interval_frames: int = 2):
         """Clicks `clicks` number of times. Waits at least `interval_frames` between clicks"""
@@ -274,7 +302,7 @@ class TAS:
                    interval_frames: int = 2):
         """Clicks until condition is true. Waits at least `interval_frames` between clicks"""
         self.moveTo(at)
-        logger.debug(f'Clicking until {condition.__name__}')
+        logger.debug(f'Clicking at {at} until {condition.__name__}')
 
         first_frame = self.frames.get_frame() + interval_frames
         for frame in range(first_frame, first_frame + timeout_seconds * Frames.FRAME_RATE, interval_frames):
@@ -299,7 +327,7 @@ class TAS:
             if interval_seconds > 0:
                 time.sleep(interval_seconds)
 
-    def matchingPixel(self, at: tuple[int, int], color: np.array, tolerance: float = 0) -> bool:
+    def isMatchingPixel(self, at: tuple[int, int], color: np.array, tolerance: float = 0) -> bool:
         """Returns true if the pixel at the given coordinates matches the color.
 
         Params:
@@ -310,14 +338,44 @@ class TAS:
                 If tolerance is 1, pixel and color must be opposites (pure white and black) to return False
         """
         pixel = self.getPixel(at)
-        difference = sum(np.abs(pixel - color))
+        difference = np.sum(np.abs(pixel - color))
         return difference < tolerance * 765 or difference == 0
 
-    def nextMessageVisible(self) -> bool:
+    def isMatchingArea(self, area: tuple[int, int, int, int], image: np.array, tolerance: float = 0) -> bool:
+        """Returns true if the area at the given coordinates matches the image.
+
+        Params:
+            area: the (left, top, right, bottom) coordinates of the area
+            image: image as numpy array with shape (height, width, 3)
+            tolerance: How closely it must match, from 0 to 1 (default 0)
+                If tolerance is 0, will only return True if area and image exactly match
+                If tolerance is 1, area and image must be opposites (pure white and black) to return False
+        """
+        area = self.getArea(area)
+        difference = np.sum(np.abs(image - area))
+        left, top, right, bottom = area
+        scaled_tolerance = tolerance * 765 * (right - left) * (bottom - top)
+        return difference < scaled_tolerance or difference == 0
+
+    def isMatchingAnyPixel(self, area: tuple[int, int, int, int], color: np.array, tolerance: float = 0) -> bool:
+        """Returns true if any pixel in the given area coordinates matches the color.
+
+        Params:
+            area: the (left, top, right, bottom) coordinates of the area
+            color: numpy array of 3 rgb values from 0 to 255
+            tolerance: How closely it must match, from 0 to 1 (default 0)
+                If tolerance is 0, will only return True if a pixel in the area exactly matches color
+                If tolerance is 1, all pixels in area must be opposite of color (pure white and black) to return False
+        """
+        area = self.getArea(area)
+        difference = np.abs(color - area).sum(axis=2).min()
+        return difference < tolerance * 765 or difference == 0
+
+    def isBubbleNextVisible(self) -> bool:
         return (TAS.IMAGE_NEXT_X == self.getArea(screen.OUTSIDE_SPEAKER_NEXT)).all()
 
-    def boothShutterDown(self) -> bool:
-        return self.matchingPixel(screen.BOOTH_SHUTTER_CHECK, TAS.COLOR_SHUTTER)
+    def isBoothShutterDown(self) -> bool:
+        return self.isMatchingPixel(screen.BOOTH_SHUTTER_CHECK, TAS.COLOR_SHUTTER)
 
     def newGame(self):
         self.start_time = time.time()
@@ -326,9 +384,10 @@ class TAS:
 
         self.click(screen.MAIN_STORY)
         self.frames.sleep(10)
+        self.moveTo(screen.SAVE_NEW)
 
         def saveScreenVisible():
-            return not self.matchingPixel(screen.SAVE_PIXEL, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.SAVE_PIXEL, TAS.COLOR_BLACK)
 
         self.waitUntil(saveScreenVisible, timeout_seconds=3)
 
@@ -337,55 +396,94 @@ class TAS:
         self.frames.sleep(10)
 
         def outsideVisible():
-            return not self.matchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
 
         self.clickUntil(screen.CUTSCENE_INTRO_NEXT, outsideVisible, timeout_seconds=7)
         logger.debug(f'newGame() done at frame {self.frames.get_frame()}')
 
     def daySetup(self):
         def outsideVisible():
-            return not self.matchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
 
         self.clickUntil(screen.WALK_TO_WORK, outsideVisible, timeout_seconds=10)
         self.day_start_time = time.time()
         self.entrant = 0
 
     def callEntrant(self):
-        self.clickUntil(screen.OUTSIDE_HORN, self.nextMessageVisible, timeout_seconds=10)
-        if self.boothShutterDown():
+        self.clickUntil(screen.OUTSIDE_HORN, self.isBubbleNextVisible, timeout_seconds=10)
+        if self.isBoothShutterDown():
             self.click(screen.BOOTH_SHUTTER_TOGGLE)
-        logger.debug(f'Entrant called at frame {self.frames.get_frame()}')
+        logger.debug(f'Entrant {self.entrant} called')
 
     def waitForEntrant(self):
         def blankWallVisible():
-            return self.matchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
+            return self.isMatchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
 
         def blankWallNotVisible():
-            return not self.matchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
+            return not self.isMatchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
 
         self.waitUntil(blankWallVisible, timeout_seconds=3)
         self.waitUntil(blankWallNotVisible, timeout_seconds=8)
 
     def waitForPapers(self):
         def blankDeskVisible():
-            return self.matchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
+            return self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
 
         def blankDeskNotVisible():
-            return not self.matchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
+            return not self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
 
         self.waitUntil(blankDeskVisible, timeout_seconds=3)
         self.waitUntil(blankDeskNotVisible, timeout_seconds=8)
 
+    @staticmethod
+    def findPaper(screenshot: np.array, paper_img: np.array, offset: screen.Point = (0, 0),
+                  tolerance: float = 0.01) -> screen.Point:
+        """Finds location of `paper_img` in `screenshot`
+
+        :param
+            screenshot: image to search in as numpy array
+            paper_img: image to search for as numpy array
+            offset: added to returned point (in case screenshot is a cropped area)
+            tolerance: How closely it must match, from 0 to 1 (default 0.01)
+                A tolerance of 0.01 or lower will usually require an exact match
+
+        :return
+            (x, y) coordinates of match if found, (-1, -1) if not found
+        """
+        match = cv2.matchTemplate(screenshot, paper_img, cv2.TM_CCOEFF_NORMED)
+        if match.max() + tolerance < 1:
+            return screen.Point(-1, -1)
+        y, x = np.unravel_index(match.argmax(), match.shape)
+        return screen.Point(x + offset[0], y + offset[1])
+
     def returnPassport(self, from_point: tuple[int, int]):
         text_delay = 0
-        if len(delays.ENTRANT_TEXT_DELAYS[self.day]) > self.entrant:
-            text_delay = delays.ENTRANT_TEXT_DELAYS[self.day][self.entrant]
-        # print(self.day, self.entrant, delays.ENTRANT_TEXT_DELAYS[self.day])
-        # print(text_delay)
+        if len(delays.ENTRANT_TEXT_DELAYS[self.day]) >= self.entrant:
+           text_delay = delays.ENTRANT_TEXT_DELAYS[self.day][self.entrant-1]
         text_delay -= time.time() - self.entrant_start_time
         if text_delay > 0:
             time.sleep(text_delay)
-        self.quickDrag(from_point, screen.BOOTH_ENTRANT)
+        self.drag(from_point, screen.BOOTH_ENTRANT)
+
+    def passportFlingCorrection(self) -> bool:
+        """Searches for a passport on the right side to correct a poorly flung passport
+
+        :return
+            True if a passport was found (and is now correctly placed under stamps)
+            False if there was no passport found
+        """
+        screenshot = self.camera.get_latest_frame()
+        for passport_image in TAS.IMAGE_CORNER_PASSPORTS:
+            passport_corner = self.findPaper(screenshot, passport_image)
+            if passport_corner != (-1, -1):
+                logger.warning(f'Found poorly flung passport at {passport_corner}')
+                break
+        else:
+            return False
+
+        passport_corner = screen.Point(passport_corner.x + 12, passport_corner.y)
+        self.drag(self.coordinateToPixel(passport_corner), screen.BOOTH_PASSPORT_FLING_CORRECTION, drop_delay_frames=6)
+        return True
 
     def nextEntrant(self):
         self.entrant += 1
@@ -395,25 +493,56 @@ class TAS:
         self.waitForPapers()
         self.entrant_start_time = time.time()
 
-    def passportOnlyAllow(self) -> bool:
-        self.nextEntrant()
-        self.quickDrag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING)
+    def nextPartial(self):
+        self.entrant += 1
+        self.callEntrant()
+        self.waitForEntrant()
+        self.entrant_start_time = time.time()
+
+    def fastApprove(self):
+        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING, drop_delay_frames=2)
         self.click(screen.STAMP_APPROVE)
         self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
+        self.frames.sleep(5)  # If passport is still on right side, wait for it to stop moving before looking for it
+        if self.passportFlingCorrection():
+            self.frames.sleep(15)  # Wait for stamp to be usable again
+            self.click(screen.STAMP_APPROVE)
+            self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
+            self.frames.sleep(10)
+
+    def fastDeny(self):
+        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING, drop_delay_frames=2)
+        self.click(screen.STAMP_DENY)
+        self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
+        self.frames.sleep(5)  # If passport is still on right side, wait for it to stop moving before looking for it
+        if self.passportFlingCorrection():
+            self.frames.sleep(15)  # Wait for stamp to be usable again
+            self.click(screen.STAMP_DENY)
+            self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
+            self.frames.sleep(10)
+
+    def passportOnlyAllow(self) -> bool:
+        self.nextEntrant()
+        self.fastApprove()
         return True
 
     def passportOnlyDeny(self) -> bool:
         self.nextEntrant()
-        self.quickDrag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING)
-        self.click(screen.STAMP_DENY)
-        self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
+        self.fastDeny()
         return True
 
     def day1Check(self) -> bool:
         self.nextEntrant()
-        self.quickDrag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING)
-
+        x, y = screen.BOOTH_LEFT_PAPERS
+        if self.isMatchingAnyPixel(screen.Area(x, y, x + 10, y + 10), TAS.COLOR_ARSTOTZKA_PASSPORT):
+            self.fastApprove()
+        else:
+            self.fastDeny()
         return True
+
+    def waitForSleepButton(self):
+        logger.info("**END OF EXPERIMENTAL VERSION**")
+        exit(0)
 
     def run(self):
         Run = AllEndings()
