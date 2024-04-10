@@ -32,14 +32,7 @@ from modules.documents.passport import PassportType, Nation, City, PassportData
 from modules.frames import Frames
 from runs.AllEndings import AllEndings
 
-logger = logging.getLogger(__name__)
-
-
-class FilterVenvLogging(logging.Filter):
-    """Without this, log file is filled with debug logs from imported modules."""
-
-    def filter(self, record):
-        return 'venv' not in record.pathname
+logger = logging.getLogger('tas')
 
 
 class TAS:

@@ -13,7 +13,7 @@ from modules.utils              import *
 from modules.documents.arstotzkanID import ArstotzkanID, District
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('tas.' + __name__)
 
 class City(Enum):
     (

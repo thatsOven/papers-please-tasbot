@@ -9,7 +9,7 @@ from modules.utils              import *
 from modules.textRecognition import parseText
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('tas.' + __name__)
 
 class Who(Enum):
     INSPECTOR, ENTRANT = "INSPECTOR", "ENTRANT"

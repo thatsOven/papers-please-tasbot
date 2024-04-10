@@ -1,11 +1,6 @@
 {
   "version": 1,
-  "disable_existing_loggers": false,
-  "filters": {
-    "skipPngImagePlugin": {
-      "()": "__main__.FilterVenvLogging"
-    }
-  },
+  "disable_existing_loggers": true,
   "formatters": {
     "simple": {
       "format": "[%(levelname)s]: %(message)s"
@@ -27,19 +22,24 @@
       "formatter": "detailed",
       "filename": "debug.log",
       "maxBytes": 100000,
-      "backupCount": 3,
-      "filters": [
-        "skipPngImagePlugin"
-      ]
+      "backupCount": 3
     }
   },
   "loggers": {
     "root": {
-      "level": "DEBUG",
+      "level": "WARNING",
       "handlers": [
         "stdout",
         "file"
       ]
+    },
+    "tas": {
+      "level": "DEBUG",
+      "handlers": [
+        "stdout",
+        "file"
+      ],
+      "propagate": false
     }
   }
 }

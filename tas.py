@@ -78,14 +78,8 @@ from runs.run import Run
 import json
 import logging
 import logging.config
-logger = logging.getLogger(__name__)
 
-
-class FilterVenvLogging(logging.Filter):
-    """Without this, log file is filled with debug logs from imported modules."""
-
-    def filter(self, record):
-        return 'venv' not in record.pathname
+logger = logging.getLogger('tas')
 
 
 class TAS:
