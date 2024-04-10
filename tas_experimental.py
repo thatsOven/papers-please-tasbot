@@ -11,23 +11,27 @@ import logging.config
 import os
 import pathlib
 import time
-from typing import ClassVar, Callable
+from typing import ClassVar, Callable, Optional
 
 import cv2
 import dxcam
 import numpy as np
 import pyautogui as pg
+import win32api
 import win32com.client
+import win32con
 import win32gui
+import win32process
 from PIL import Image
 
 import modules.constants.delays as delays
+import modules.constants.other as other
 import modules.constants.screen_new as screen
-from modules.documents.passport import City, Nation, PassportData, PassportType
+from modules.constants.screen_new import Point
+from modules.documents.passport import PassportType, Nation, City, PassportData
+from modules.entrant import Entrant
 from modules.frames import Frames
 from runs.AllEndings import AllEndings
-
-MOMENTUM_STOP_TIME = 0.15
 
 logger = logging.getLogger(__name__)
 
@@ -39,151 +43,17 @@ class FilterVenvLogging(logging.Filter):
         return 'venv' not in record.pathname
 
 
-class TasException(Exception):
-    pass
-
-
 class TAS:
-    PROGRAM_DIR: ClassVar[str] = str(pathlib.Path(__file__).parent.absolute())
-    RUNS_DIR: ClassVar[str] = os.path.join(PROGRAM_DIR, 'runs')
-    ASSETS: ClassVar[str] = os.path.join(PROGRAM_DIR, 'assets')
+    PROGRAM_DIR: ClassVar[pathlib.Path] = pathlib.Path(__file__).parent
+    RUNS_DIR: ClassVar[pathlib.Path] = PROGRAM_DIR / 'runs'
+    NEW_ASSETS: ClassVar[pathlib.Path] = PROGRAM_DIR / 'assets' / 'new'
+    ASSETS: ClassVar[pathlib.Path] = PROGRAM_DIR / 'assets'
 
-    # TODO Only Republia updated, probably other passports are wrong too but this still needs testing
-    PASSPORT_TYPES = (
-        PassportType(
-            Nation.ANTEGRIA,
-            os.path.join(ASSETS, 'passports', 'antegria'),
-            (City.ST_MARMERO, City.GLORIAN, City.OUTER_GROUSE),
-            PassportData().offsets(
-                name=(271, 327, 500, 342),
-                birth=(325, 251, 390, 262),
-                sex=(305, 269, 314, 280),
-                city=(305, 287, 418, 302),
-                expiration=(325, 305, 390, 316),
-                number=(271, 347, 504, 358),
-                picture=(421, 225, 500, 320),
-                label=(271, 225, 390, 242)
-            )
-        ),
-        PassportType(
-            Nation.ARSTOTZKA,
-            os.path.join(ASSETS, 'passports', 'arstotzka'),
-            (City.ORVECH_VONOR, City.EAST_GRESTIN, City.PARADIZNA),
-            PassportData().offsets(
-                name=(271, 225, 503, 240),
-                birth=(411, 245, 476, 256),
-                sex=(391, 261, 400, 272),
-                city=(391, 277, 506, 292),
-                expiration=(411, 293, 476, 304),
-                number=(271, 345, 394, 356),
-                picture=(271, 245, 350, 340),
-                label=(413, 315, 500, 334)
-            )
-        ),
-        PassportType(
-            Nation.IMPOR,
-            os.path.join(ASSETS, 'passports', 'impor'),
-            (City.ENKYO, City.HAIHAN, City.TSUNKEIDO),
-            PassportData().offsets(
-                name=(269, 221, 503, 236),
-                birth=(415, 243, 482, 254),
-                sex=(395, 259, 404, 270),
-                city=(395, 275, 498, 290),
-                expiration=(415, 291, 482, 302),
-                number=(335, 341, 500, 352),
-                picture=(273, 241, 352, 336),
-                label=(275, 343, 334, 354)
-            )
-        ),
-        PassportType(
-            Nation.KOLECHIA,
-            os.path.join(ASSETS, 'passports', 'kolechia'),
-            (City.YURKO_CITY, City.VEDOR, City.WEST_GRESTIN),
-            PassportData().offsets(
-                name=(271, 245, 502, 260),
-                birth=(413, 263, 478, 274),
-                sex=(393, 279, 402, 290),
-                city=(393, 295, 502, 310),
-                expiration=(413, 311, 478, 322),
-                number=(354, 345, 505, 356),
-                picture=(271, 263, 350, 358),
-                label=(271, 221, 498, 238)
-            )
-        ),
-        PassportType(
-            Nation.OBRISTAN,
-            os.path.join(ASSETS, 'passports', 'obristan'),
-            (City.SKAL, City.LORNDAZ, City.MERGEROUS),
-            PassportData().offsets(
-                name=(271, 245, 502, 260),
-                birth=(329, 271, 394, 282),
-                sex=(309, 287, 318, 298),
-                city=(309, 303, 416, 318),
-                expiration=(329, 319, 394, 330),
-                number=(275, 345, 422, 356),
-                picture=(423, 263, 502, 358),
-                label=(269, 221, 504, 240)
-            )
-        ),
-        PassportType(
-            Nation.REPUBLIA,
-            os.path.join(ASSETS, 'patches', 'republianPassport'),
-            (City.TRUE_GLORIAN, City.LESRENADI, City.BOSTAN),
-            PassportData().offsets(
-                name=(271, 223, 503, 238),
-                birth=(329, 245, 394, 256),
-                sex=(309, 261, 318, 272),
-                city=(309, 277, 423, 292),
-                expiration=(329, 293, 394, 304),
-                number=(271, 345, 507, 356),
-                picture=(425, 241, 504, 336),
-                label=(273, 321, 396, 336)
-            )
-        ),
-        PassportType(
-            Nation.UNITEDFED,
-            os.path.join(ASSETS, 'passports', 'unitedFed'),
-            (City.GREAT_RAPID, City.SHINGLETON, City.KORISTA_CITY),
-            PassportData().offsets(
-                name=(271, 245, 504, 260),
-                birth=(413, 261, 479, 272),
-                sex=(393, 277, 402, 288),
-                city=(393, 293, 504, 308),
-                expiration=(413, 309, 479, 320),
-                number=(355, 345, 507, 356),
-                picture=(271, 261, 350, 356),
-                label=(271, 223, 504, 238)
-            )
-        )
-    )
+    IMAGE_NIGHT: ClassVar[dict[str, np.ndarray]] = None
+    IMAGE_OUTSIDE: ClassVar[dict[str, np.ndarray]] = None
+    IMAGE_PAPER_CORNERS: ClassVar[dict[str, np.ndarray]] = None
 
-    IMAGE_NEXT_X = np.asarray(Image.open(
-        os.path.join(ASSETS, "nextBubbleX.png")
-    ).convert("RGB"))
-    IMAGE_CORNER_PASSPORT_ARSTOTZKA = np.asarray(Image.open(
-        os.path.join(ASSETS, "paper_corners/passport_arstotzka.png")
-    ).convert("RGB"))
-    IMAGE_CORNER_PASSPORT_IMPOR = np.asarray(Image.open(
-        os.path.join(ASSETS, "paper_corners/passport_impor.png")
-    ).convert("RGB"))
-    IMAGE_CORNER_PASSPORT_KOLECHIA = np.asarray(Image.open(
-        os.path.join(ASSETS, "paper_corners/passport_kolechia.png")
-    ).convert("RGB"))
-    IMAGE_CORNER_PASSPORT_REPUBLIA = np.asarray(Image.open(
-        os.path.join(ASSETS, "paper_corners/passport_republia.png")
-    ).convert("RGB"))
-    IMAGE_CORNER_PASSPORTS = [
-        IMAGE_CORNER_PASSPORT_ARSTOTZKA,
-        IMAGE_CORNER_PASSPORT_IMPOR,
-        IMAGE_CORNER_PASSPORT_KOLECHIA,
-        IMAGE_CORNER_PASSPORT_REPUBLIA
-    ]
 
-    COLOR_BLACK = np.array([0, 0, 0])
-    COLOR_BOOTH_WALL = np.array([50, 37, 37])
-    COLOR_BOOTH_LEFT_DESK = np.array([132, 138, 107])
-    COLOR_SHUTTER = np.array([53, 45, 41])
-    COLOR_ARSTOTZKA_PASSPORT = np.array([59, 72, 59])
 
     PIXEL_SIZE = 3
 
@@ -191,25 +61,35 @@ class TAS:
         self.setupLogging()
         logger.info('**EXPERIMENTAL VERSION**')
 
+        if os.name == 'nt':
+            self.hwnd = self.getWinHWND()
+            shell = win32com.client.Dispatch('WScript.Shell')
+            shell.SendKeys('%')
+            win32gui.SetForegroundWindow(self.hwnd)
+            pid = win32api.GetCurrentProcessId()
+            handle = win32api.OpenProcess(win32con.PROCESS_ALL_ACCESS, True, pid)
+            win32process.SetPriorityClass(handle, win32process.ABOVE_NORMAL_PRIORITY_CLASS)
+        else:
+            raise OSError('Only Windows is currently supported')
+
         pg.useImageNotFoundException(False)
         pg.PAUSE = 0
 
-        self.hwnd = self.getWinHWND()
-        shell = win32com.client.Dispatch('WScript.Shell')
-        shell.SendKeys('%')
-        win32gui.SetForegroundWindow(self.hwnd)
-
         self.day: int = 0
-        self.entrant: int = 0
+        self.entrant: int = 0  # Entrant = Entrant()
+        self.expected_ticks: list[str] = []
+        self.ticks_to_click: list[int] = []  # List of indices in expected_ticks
 
         self.start_time: float = 0
         self.rta_start_time: float = 0
         self.day_start_time: float = 0
         self.entrant_start_time: float = 0
-        self.frames = Frames()
+        self.frames: Frames = Frames()
 
-        self.camera = dxcam.create()
+        self.camera: dxcam.DXCamera = dxcam.create()
         self.camera.start(region=self.areaOffset((0, 0, 570, 320)))
+
+        self.loadImageFiles()
 
     @classmethod
     def getWinHWND(cls) -> str:
@@ -223,7 +103,7 @@ class TAS:
         win32gui.EnumWindows(callback, papers_please_hwnd)
         if papers_please_hwnd[0] == '':
             logging.error('Unable to find window')
-            raise TasException('No "Papers Please" window was found')
+            raise ProcessLookupError('No "Papers Please" window was found')
         return papers_please_hwnd[0]
 
     @staticmethod
@@ -232,6 +112,18 @@ class TAS:
         with open(config_path) as f:
             config = json.load(f)
         logging.config.dictConfig(config)
+
+    @staticmethod
+    def loadImageFiles():
+        TAS.IMAGE_NIGHT = {
+            path.stem: np.array(Image.open(path).convert('RGB')) for path in TAS.NEW_ASSETS.glob('night/*.png')
+        }
+        TAS.IMAGE_OUTSIDE = {
+            path.stem: np.array(Image.open(path).convert('RGB')) for path in TAS.NEW_ASSETS.glob('outside/*.png')
+        }
+        TAS.IMAGE_PAPER_CORNERS = {
+            path.stem: np.array(Image.open(path).convert('RGB')) for path in TAS.NEW_ASSETS.glob('paper_corners/*.png')
+        }
 
     @staticmethod
     def pixelToCoordinate(point: screen.Point) -> screen.Point:
@@ -252,10 +144,6 @@ class TAS:
         window_x, window_y, _, _ = win32gui.GetWindowRect(self.hwnd)
         return screen.Area(*self.pointOffset((area[0], area[1])), *self.pointOffset((area[2], area[3])))
 
-    def regionOffset(self, region: screen.Region) -> screen.Region:
-        window_x, window_y, _, _ = win32gui.GetWindowRect(self.hwnd)
-        return screen.Region(*self.pointOffset((region[0], region[1])), *self.pixelToCoordinate((region[2], region[3])))
-
     def getArea(self, area: screen.Area) -> np.ndarray:
         """Get np array of pixels in screen area. DO NOT offset area coordinates"""
         left, top, right, bottom = area
@@ -270,74 +158,69 @@ class TAS:
         frame = self.camera.get_latest_frame()
         return frame[y, x]
 
-    def drag(self, from_point: screen.Point, to_point: screen.Point, drop_delay_frames: int = 2) -> None:
+    def drag(self, from_point: screen.Point, to_point: screen.Point) -> None:
         logger.debug(f'Drag from {from_point} to {to_point}')
-        self.frames.sleep(2)
         self.moveTo(from_point)
-        self.frames.sleep(2)
+        self.frames.sleep(1)
         pg.mouseDown()
-        self.frames.sleep(2)
+        self.frames.sleep(1)
         self.moveTo(to_point)
-        self.frames.sleep(drop_delay_frames)
-        pg.mouseUp()
-        self.frames.sleep(2)
 
     def moveTo(self, point: screen.Point) -> None:
         pg.moveTo(self.pointOffset(point))
 
-    def click(self, at: tuple[int, int], clicks: int = 1, interval_frames: int = 2):
+    def click(self, point: screen.Point, clicks: int = 1, interval_frames: int = 2):
         """Clicks `clicks` number of times. Waits at least `interval_frames` between clicks"""
-        self.moveTo(at)
+        self.moveTo(point)
         if clicks == 1:
-            logger.debug(f'Click at {at}')
+            logger.debug(f'Click {point}')
         else:
-            logger.debug(f'Multi-click at {at}, {clicks=}, {interval_frames=}F')
+            logger.debug(f'Multi-click {point}, {clicks=}, {interval_frames=}F')
 
         for _ in range(clicks):
             pg.mouseDown()
             pg.mouseUp()
             self.frames.sleep(interval_frames)
 
-    def clickUntil(self, at: tuple[int, int], condition: Callable[[], bool], timeout_seconds: float = 10,
+    def clickUntil(self, point: screen.Point, condition: Callable[[], bool], timeout_seconds: float = 10,
                    interval_frames: int = 2):
         """Clicks until condition is true. Waits at least `interval_frames` between clicks"""
-        self.moveTo(at)
-        logger.debug(f'Clicking at {at} until {condition.__name__}')
+        self.moveTo(point)
+        logger.debug(f'Clicking {point} until {condition.__name__}')
 
-        first_frame = self.frames.get_frame() + interval_frames
-        for frame in range(first_frame, first_frame + timeout_seconds * Frames.FRAME_RATE, interval_frames):
+        start_time = time.perf_counter()
+        while time.perf_counter() - start_time < timeout_seconds:
             if condition():
                 return
             pg.mouseDown()
             pg.mouseUp()
-            self.frames.sleep_to(frame)
-            if self.frames.get_frame() > frame:
-                logger.debug(f'Missed frame {frame}')
-        logger.warning(f'Clicking {at} until {condition.__name__} timed out after {timeout_seconds} seconds')
+            self.frames.sleep(interval_frames)
+        logger.warning(f'Clicking {point} until {condition.__name__} timed out after {timeout_seconds} seconds')
 
-    def waitUntil(self, condition: Callable[[], bool], timeout_seconds: float = 0, interval_seconds: float = 0):
+    @staticmethod
+    def waitUntil(condition: Callable[[], bool], timeout_seconds: float = 0, interval_seconds: float = 0):
         """Waits until condition is true"""
         logger.debug(f'Waiting until {condition.__name__}')
 
-        start_time = time.time()
+        start_time = time.perf_counter()
         while not condition():
-            if 0 < timeout_seconds < time.time() - start_time:
+            if 0 < timeout_seconds < time.perf_counter() - start_time:
                 logger.warning(f'Waiting for {condition.__name__} timed out after {timeout_seconds} seconds')
                 break
             if interval_seconds > 0:
                 time.sleep(interval_seconds)
 
-    def isMatchingPixel(self, at: tuple[int, int], color: np.array, tolerance: float = 0) -> bool:
+    def isMatchingPixel(self, point: screen.Point, color: np.array, tolerance: float = 0) -> bool:
         """Returns true if the pixel at the given coordinates matches the color.
 
         Params:
-            at: the (x, y) coordinates of the pixel
+            point: the (x, y) coordinates of the pixel
             color: numpy array of 3 rgb values from 0 to 255
             tolerance: How closely it must match, from 0 to 1 (default 0)
                 If tolerance is 0, will only return True if pixel and color exactly match
                 If tolerance is 1, pixel and color must be opposites (pure white and black) to return False
         """
-        pixel = self.getPixel(at)
+        pixel = self.getPixel(point)
         difference = np.sum(np.abs(pixel - color))
         return difference < tolerance * 765 or difference == 0
 
@@ -351,8 +234,8 @@ class TAS:
                 If tolerance is 0, will only return True if area and image exactly match
                 If tolerance is 1, area and image must be opposites (pure white and black) to return False
         """
-        area = self.getArea(area)
-        difference = np.sum(np.abs(image - area))
+        area_image = self.getArea(area)
+        difference = np.sum(np.abs(image - area_image))
         left, top, right, bottom = area
         scaled_tolerance = tolerance * 765 * (right - left) * (bottom - top)
         return difference < scaled_tolerance or difference == 0
@@ -371,14 +254,11 @@ class TAS:
         difference = np.abs(color - area).sum(axis=2).min()
         return difference < tolerance * 765 or difference == 0
 
-    def isBubbleNextVisible(self) -> bool:
-        return (TAS.IMAGE_NEXT_X == self.getArea(screen.OUTSIDE_SPEAKER_NEXT)).all()
-
-    def isBoothShutterDown(self) -> bool:
-        return self.isMatchingPixel(screen.BOOTH_SHUTTER_CHECK, TAS.COLOR_SHUTTER)
+    def identifyInitialPapers(self):
+        pass
 
     def newGame(self):
-        self.start_time = time.time()
+        self.start_time = time.perf_counter()
         self.frames.start()
         self.day = 1
 
@@ -387,83 +267,92 @@ class TAS:
         self.moveTo(screen.SAVE_NEW)
 
         def saveScreenVisible():
-            return not self.isMatchingPixel(screen.SAVE_PIXEL, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.SAVE_PIXEL, other.COLOR_BLACK)
 
         self.waitUntil(saveScreenVisible, timeout_seconds=3)
 
-        self.rta_start_time = time.time()
+        self.rta_start_time = time.perf_counter()
         self.click(screen.SAVE_NEW)
         self.frames.sleep(10)
 
         def outsideVisible():
-            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, other.COLOR_BLACK)
 
         self.clickUntil(screen.CUTSCENE_INTRO_NEXT, outsideVisible, timeout_seconds=7)
         logger.debug(f'newGame() done at frame {self.frames.get_frame()}')
 
     def daySetup(self):
         def outsideVisible():
-            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, TAS.COLOR_BLACK)
+            return not self.isMatchingPixel(screen.OUTSIDE_GROUND, other.COLOR_BLACK)
 
         self.clickUntil(screen.WALK_TO_WORK, outsideVisible, timeout_seconds=10)
-        self.day_start_time = time.time()
+        self.day_start_time = time.perf_counter()
         self.entrant = 0
 
     def callEntrant(self):
-        self.clickUntil(screen.OUTSIDE_HORN, self.isBubbleNextVisible, timeout_seconds=10)
-        if self.isBoothShutterDown():
-            self.click(screen.BOOTH_SHUTTER_TOGGLE)
+        def isBubbleNextVisible():
+            return np.all(TAS.IMAGE_OUTSIDE['nextBubbleX'] == self.getArea(screen.OUTSIDE_SPEAKER_NEXT))
+
+        self.clickUntil(screen.OUTSIDE_HORN, isBubbleNextVisible, timeout_seconds=10)
         logger.debug(f'Entrant {self.entrant} called')
+
+        if self.isMatchingPixel(screen.BOOTH_SHUTTER_CHECK, other.COLOR_SHUTTER):
+            self.click(screen.BOOTH_SHUTTER_TOGGLE)
 
     def waitForEntrant(self):
         def blankWallVisible():
-            return self.isMatchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
+            return self.isMatchingPixel(screen.BOOTH_WALL_CHECK, other.COLOR_BOOTH_WALL)
 
         def blankWallNotVisible():
-            return not self.isMatchingPixel(screen.BOOTH_WALL_CHECK, TAS.COLOR_BOOTH_WALL)
+            return not self.isMatchingPixel(screen.BOOTH_WALL_CHECK, other.COLOR_BOOTH_WALL)
 
         self.waitUntil(blankWallVisible, timeout_seconds=3)
         self.waitUntil(blankWallNotVisible, timeout_seconds=8)
 
     def waitForPapers(self):
         def blankDeskVisible():
-            return self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
+            return self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, other.COLOR_BOOTH_LEFT_DESK)
 
         def blankDeskNotVisible():
-            return not self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, TAS.COLOR_BOOTH_LEFT_DESK)
+            return not self.isMatchingPixel(screen.BOOTH_LEFT_PAPERS, other.COLOR_BOOTH_LEFT_DESK)
 
         self.waitUntil(blankDeskVisible, timeout_seconds=3)
         self.waitUntil(blankDeskNotVisible, timeout_seconds=8)
 
-    @staticmethod
-    def findPaper(screenshot: np.array, paper_img: np.array, offset: screen.Point = (0, 0),
-                  tolerance: float = 0.01) -> screen.Point:
+    def findImage(self, screenshot: np.array, image: np.array, search_area: screen.Area = None,
+                  tolerance: float = 0.01) -> Optional[Point]:
         """Finds location of `paper_img` in `screenshot`
 
         :param
             screenshot: image to search in as numpy array
             paper_img: image to search for as numpy array
-            offset: added to returned point (in case screenshot is a cropped area)
+            search_area: area of screenshot to search (default None, search whole screenshot)
             tolerance: How closely it must match, from 0 to 1 (default 0.01)
                 A tolerance of 0.01 or lower will usually require an exact match
 
         :return
-            (x, y) coordinates of match if found, (-1, -1) if not found
+            (x, y) coordinates of match if found, None if not found
         """
-        match = cv2.matchTemplate(screenshot, paper_img, cv2.TM_CCOEFF_NORMED)
-        if match.max() + tolerance < 1:
-            return screen.Point(-1, -1)
-        y, x = np.unravel_index(match.argmax(), match.shape)
-        return screen.Point(x + offset[0], y + offset[1])
+        if search_area is None:
+            search_area = screen.Area(0, 0, screenshot.shape[1], screenshot.shape[0])
+        left, top = self.pixelToCoordinate((search_area[0], search_area[1]))
+        right, bottom = self.pixelToCoordinate((search_area[2], search_area[3]))
+        screenshot = screenshot[top:bottom, left:right]
 
-    def returnPassport(self, from_point: tuple[int, int]):
+        match = cv2.matchTemplate(screenshot, image, cv2.TM_CCOEFF_NORMED)
+        if match.max() + tolerance < 1:
+            return None
+
+        y, x = np.unravel_index(match.argmax(), match.shape)
+        x, y = self.coordinateToPixel((x, y))
+        return screen.Point(x + search_area[0], y + search_area[1])
+
+    def waitTextDelay(self):
         text_delay = 0
         if len(delays.ENTRANT_TEXT_DELAYS[self.day]) >= self.entrant:
-           text_delay = delays.ENTRANT_TEXT_DELAYS[self.day][self.entrant-1]
-        text_delay -= time.time() - self.entrant_start_time
-        if text_delay > 0:
-            time.sleep(text_delay)
-        self.drag(from_point, screen.BOOTH_ENTRANT)
+            text_delay = delays.ENTRANT_TEXT_DELAYS[self.day][self.entrant - 1]
+        while time.perf_counter() < self.entrant_start_time + text_delay:
+            pass
 
     def passportFlingCorrection(self) -> bool:
         """Searches for a passport on the right side to correct a poorly flung passport
@@ -473,16 +362,19 @@ class TAS:
             False if there was no passport found
         """
         screenshot = self.camera.get_latest_frame()
-        for passport_image in TAS.IMAGE_CORNER_PASSPORTS:
-            passport_corner = self.findPaper(screenshot, passport_image)
-            if passport_corner != (-1, -1):
-                logger.warning(f'Found poorly flung passport at {passport_corner}')
+        for name, image in TAS.IMAGE_PAPER_CORNERS.items():
+            if not name.startswith('passport'):
+                continue
+
+            passport_corner = self.findImage(screenshot, image)
+            if passport_corner is not None:
+                logger.warning(f'Found poorly flung passport {name} at {passport_corner}')
                 break
         else:
             return False
 
-        passport_corner = screen.Point(passport_corner.x + 12, passport_corner.y)
-        self.drag(self.coordinateToPixel(passport_corner), screen.BOOTH_PASSPORT_FLING_CORRECTION, drop_delay_frames=6)
+        passport_corner = screen.Point(passport_corner.x + 5, passport_corner.y)
+        self.drag(passport_corner, screen.BOOTH_PASSPORT_FLING_CORRECTION)
         return True
 
     def nextEntrant(self):
@@ -491,35 +383,34 @@ class TAS:
         self.waitForEntrant()
         self.click(screen.BOOTH_STAMP_BAR_TOGGLE)
         self.waitForPapers()
-        self.entrant_start_time = time.time()
+        self.identifyInitialPapers()
+        self.entrant_start_time = time.perf_counter()
 
     def nextPartial(self):
         self.entrant += 1
         self.callEntrant()
         self.waitForEntrant()
-        self.entrant_start_time = time.time()
+        self.entrant_start_time = time.perf_counter()
 
     def fastApprove(self):
-        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING, drop_delay_frames=2)
         self.click(screen.STAMP_APPROVE)
-        self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
-        self.frames.sleep(5)  # If passport is still on right side, wait for it to stop moving before looking for it
-        if self.passportFlingCorrection():
-            self.frames.sleep(15)  # Wait for stamp to be usable again
-            self.click(screen.STAMP_APPROVE)
-            self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
-            self.frames.sleep(10)
+        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_STAMP_POSITION)
+        self.frames.sleep(2)
+        self.moveTo(screen.BOOTH_ENTRANT)
+        self.frames.sleep(2)
+        self.waitTextDelay()
+        pg.mouseUp()
+        self.frames.sleep(5)
 
     def fastDeny(self):
-        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_FLING, drop_delay_frames=2)
         self.click(screen.STAMP_DENY)
-        self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
-        self.frames.sleep(5)  # If passport is still on right side, wait for it to stop moving before looking for it
-        if self.passportFlingCorrection():
-            self.frames.sleep(15)  # Wait for stamp to be usable again
-            self.click(screen.STAMP_DENY)
-            self.returnPassport(screen.BOOTH_PASSPORT_REGRAB)
-            self.frames.sleep(10)
+        self.drag(screen.BOOTH_LEFT_PAPERS, screen.BOOTH_PASSPORT_STAMP_POSITION)
+        self.frames.sleep(2)
+        self.moveTo(screen.BOOTH_ENTRANT)
+        self.frames.sleep(2)
+        self.waitTextDelay()
+        pg.mouseUp()
+        self.frames.sleep(5)
 
     def passportOnlyAllow(self) -> bool:
         self.nextEntrant()
@@ -534,14 +425,81 @@ class TAS:
     def day1Check(self) -> bool:
         self.nextEntrant()
         x, y = screen.BOOTH_LEFT_PAPERS
-        if self.isMatchingAnyPixel(screen.Area(x, y, x + 10, y + 10), TAS.COLOR_ARSTOTZKA_PASSPORT):
+        passport_area = screen.Area(x, y, x + 10, y + 10)
+        # for nation, color in (other.COLOR_PASSPORT_ARSTOTZKA, other.COLOR_PASSPORT_IMPOR,
+        #               other.COLOR_PASSPORT_KOLECHIA, other.COLOR_PASSPORT_REPUBLIA):
+        if self.isMatchingAnyPixel(passport_area, other.COLOR_PASSPORT_ARSTOTZKA):
             self.fastApprove()
         else:
             self.fastDeny()
         return True
 
+    def day2Check(self):
+        self.passportOnlyDeny()
+
     def waitForSleepButton(self):
-        logger.info("**END OF EXPERIMENTAL VERSION**")
+        self.ticks_to_click = []
+
+        def sleepButtonVisible():
+            return self.isMatchingArea(screen.NIGHT_SLEEP_TEXT_AREA, TAS.IMAGE_NIGHT['sleep'])
+
+        timeout = 30
+        if self.day == 1:
+            timeout = 180
+        self.waitUntil(sleepButtonVisible, timeout_seconds=timeout)
+
+    def waitForAllTicks(self):
+        """Overriding behavior, does not actually wait
+        Instead, sets up order that ticks are expected to appear, so they can be clicked instantly
+        Expected ticks should always be in order they will appear
+        """
+        if self.day == 1:
+            self.expected_ticks = ['rent', 'heat', 'food']
+        else:
+            self.expected_ticks = ['rent', 'heat', 'food']
+
+    def clickOnTick(self, tick):
+        """Overriding behavior, does not actually click
+        Instead, adds tick to queue, so it will be clicked instantly upon appearing
+        """
+        if tick not in self.expected_ticks:
+            logger.error(f'Got request to click unexpected tick {tick}, only expecting {self.expected_ticks}')
+            return
+
+        self.ticks_to_click.append(self.expected_ticks.index(tick))
+
+    def dayEnd(self):
+        """Click queued up ticks in order as they appear, then sleep"""
+        self.ticks_to_click.sort()
+
+        # First expected tick should always be rent or something similar, happens before any real ticks
+        def firstTickVisible():
+            return self.findImage(self.camera.get_latest_frame(), TAS.IMAGE_NIGHT[self.expected_ticks[0]],
+                                  search_area=screen.NIGHT_TICK_AREA) is not None
+
+        self.waitUntil(firstTickVisible, timeout_seconds=10)
+        frame_timer = Frames()
+        frame = 0
+        ticks_clicked = 0
+        for tick in self.ticks_to_click:
+            while frame < 200:  # Timeout in case a tick is never found
+                frame += 15
+                frame_timer.sleep_to(frame)
+                point = self.findImage(self.camera.get_latest_frame(), TAS.IMAGE_NIGHT[self.expected_ticks[tick]],
+                                       search_area=screen.NIGHT_TICK_AREA)
+                if point is None:
+                    continue
+
+                logger.debug(f'Found tick {self.expected_ticks[tick]} on frame {frame}')
+                self.click((point.x + screen.NIGHT_TICK_CLICK_OFFSET.x, point.y + screen.NIGHT_TICK_CLICK_OFFSET.y))
+                ticks_clicked += 1
+                break
+
+        if ticks_clicked < len(self.ticks_to_click):
+            logger.error(f'Could not find tick {self.expected_ticks[self.ticks_to_click[ticks_clicked]]}, timed out '
+                         f'after {frame / 60:.2f} seconds')
+
+        self.click(screen.NIGHT_SLEEP_CLICK, clicks=5)
         exit(0)
 
     def run(self):

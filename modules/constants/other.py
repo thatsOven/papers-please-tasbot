@@ -12,6 +12,18 @@ OBRISTAN_TEXT_COLOR = (237, 224, 216)
 TRANSCRIPTION_BG_COLOR   = (212, 237, 236)
 TRANSCRIPTION_TEXT_COLOR = PASSPORT_TEXT_COLOR
 
+COLOR_BLACK = (0, 0, 0)
+COLOR_BOOTH_WALL = (50, 37, 37)
+COLOR_BOOTH_LEFT_DESK = (132, 138, 107)
+COLOR_SHUTTER = (53, 45, 41)
+COLOR_PASSPORT_ANTEGRIA = (49, 77, 33)
+COLOR_PASSPORT_ARSTOTZKA = (59, 72, 59)
+COLOR_PASSPORT_IMPOR = (102, 31, 9)
+COLOR_PASSPORT_KOLECHIA = (85, 37, 63)
+COLOR_PASSPORT_OBRISTAN = (138, 12, 12)
+COLOR_PASSPORT_REPUBLIA = (76, 42, 27)
+COLOR_PASSPORT_UNITEDFED = (35, 30, 85)
+
 # space is first cause end of text will be full of spaces, we want to recognize them first
 # lowercase characters are next because they're the most common character
 # uppercase characters show up like twice

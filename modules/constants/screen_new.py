@@ -1,24 +1,26 @@
-import collections
+from collections import namedtuple
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Iterable
 
-Point = collections.namedtuple("Point", "x y")
-Area = collections.namedtuple("Area", "left top right bottom")
-Region = collections.namedtuple("AreaWH", "x y width height")
+Point = namedtuple("Point", "x y")
+Area = namedtuple("Area", "left top right bottom")
 
 
-class DayCoordinates:
+class DayCoordinates(Sequence):
     """Coordinates for day buttons on the save screen"""
-
     def __init__(self, dayX: Iterable[int], dayY: Iterable[int]):
-        self._Point = [[(x, y) for y in dayY] for x in dayX]
+        self._Point = [[Point(x, y) for x in dayX] for y in dayY]
 
-    def get(self, x: int, y: int) -> Point:
-        """Returns the screen Point for a day given the grid Point of the button"""
-        return self._Point[x][y]
+    def __getitem__(self, day: int | tuple[int, int]) -> list[Point] | Point:
+        if isinstance(day, int):
+            return self._Point[day]
+        if isinstance(day, tuple) and len(day) == 2:
+            return self._Point[day[0]][day[1]]
+        raise IndexError(f'bad day coordinates index {day}')
 
-    def __call__(self, x: int, y: int) -> Point:
-        return self.get(x, y)
+    def __len__(self) -> iter:
+        return len(self._Point)
 
 
 ZERO_POINT = Point(105, 60)
@@ -62,7 +64,7 @@ SAVE_DAYS_Y = (
     530
 )
 SAVE_DAYS = DayCoordinates(SAVE_DAYS_X, SAVE_DAYS_Y)
-SAVE_NEW = SAVE_DAYS(0, 0)
+SAVE_NEW = SAVE_DAYS[0][0]
 SAVE_BACK = Point(284, 299)
 SAVE_PIXEL = Point(1, 41)
 
@@ -77,21 +79,27 @@ OUTSIDE_SPEAKER_NEXT = Area(172, 46, 175, 52)
 
 # Booth Entrant Area
 BOOTH_WALL_CHECK = Point(72, 206)
-BOOTH_ENTRANT = Point(87, 152)
+BOOTH_ENTRANT = Point(87, 184)
 BOOTH_SHUTTER_TOGGLE = Point(171, 121)
 BOOTH_SHUTTER_CHECK = Point(147, 198)
 
-# Left Booth
-BOOTH_LEFT_PAPERS = Point(89, 246)
+# Left Booth Desk
+BOOTH_LEFT_PAPERS = Point(89, 255)
 
-# Right Booth
+# Right Booth Desk
 BOOTH_STAMP_BAR_TOGGLE = Point(566, 158)
 BOOTH_PASSPORT_FLING = Point(280, 235)
+BOOTH_PASSPORT_STAMP_POSITION = Point(428, 233)
 BOOTH_PASSPORT_REGRAB = Point(442, 227)
 BOOTH_PASSPORT_FLING_CORRECTION = Point(363, 302)
-
 STAMP_APPROVE = Point(487, 140)
 STAMP_DENY = Point(366, 140)
+
+# Night
+NIGHT_SLEEP_TEXT_AREA = Area(513, 281, 544, 293)
+NIGHT_SLEEP_CLICK = Point(497, 287)
+NIGHT_TICK_AREA = Area(180, 90, 300, 300)
+NIGHT_TICK_CLICK_OFFSET = Point(216, 6)
 
 # TODO All the rest of the coordinates below
 PAPER_SCAN_POS = Point(750, 450)

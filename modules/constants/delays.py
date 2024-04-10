@@ -19,7 +19,7 @@ PASSPORT_DRAWER_CLOSE_TIME = 0.5
 GUN_BULLETS_APPEAR_TIME = 1
 
 ENTRANT_TEXT_DELAYS = {
-    1: (0, 0, 1.6),
+    1: (0, 0, 1.65),
     2: (),
     3: (),
     4: (),

@@ -5,7 +5,8 @@ import typing
 import numpy
 import PIL
 
-import modules
+import modules.documents.document
+import modules.documents.passport
 
 class TASDef:
     DEBUG: typing.ClassVar[bool]
