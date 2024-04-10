@@ -29,7 +29,6 @@ import modules.constants.other as other
 import modules.constants.screen_new as screen
 from modules.constants.screen_new import Point
 from modules.documents.passport import PassportType, Nation, City, PassportData
-from modules.entrant import Entrant
 from modules.frames import Frames
 from runs.AllEndings import AllEndings
 
@@ -52,8 +51,6 @@ class TAS:
     IMAGE_NIGHT: ClassVar[dict[str, np.ndarray]] = None
     IMAGE_OUTSIDE: ClassVar[dict[str, np.ndarray]] = None
     IMAGE_PAPER_CORNERS: ClassVar[dict[str, np.ndarray]] = None
-
-
 
     PIXEL_SIZE = 3
 
