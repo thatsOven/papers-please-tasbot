@@ -1,6 +1,6 @@
 # MIT License
 #
-# Copyright (c) 2024 thatsOven
+# Copyright (c) 2024 thatsOven, Bryan Allaire
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,9 @@
 # 
 # for the bot to work, the game language has to be english, 
 # the date format must be 1982-1-23, and the game must be windowed, in default resolution
-# 
-# *FOR DEVELOPERS*: when modifying methods of the TAS class, or adding new ones, be sure to run
-#                   (or edit, in some cases) makeTASDef.py for better syntax highlighting and ide hints
-#                   when creating runs.
 #
 # **TODO**
-# - maybe rewrite text recognition in cython for performance + integrate build/run tool with makeTASDef.py
+# - maybe rewrite text recognition in cython for performance
 # - make gui
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using "next!" bubble
@@ -42,6 +38,7 @@
 # - make methods to handle special encounters in different ways
 # - maybe make a simple scripting language for runs
 
+from abc               import ABC, abstractmethod
 from PIL               import ImageGrab, ImageFont, Image
 from pathlib           import Path
 from deskew            import determine_skew
@@ -73,7 +70,26 @@ from modules.documents.passport       import (
     City, Nation, Sex, PassportData, PassportType, Passport
 )
 
-from runs.run import Run
+import logging
+
+logger = logging.getLogger('tas.' + __name__)
+
+
+class Run(ABC):
+    if "MAKING_DEF" not in os.environ:
+        TAS: ClassVar[TAS] = None
+        tas: TAS
+
+    @abstractmethod
+    def run(self):
+        ...
+
+    def credits(self):
+        return "No credits"
+
+    def test(self):
+        ...
+
 
 class TAS:
     DEBUG: ClassVar[bool] = True
@@ -156,7 +172,7 @@ class TAS:
     weight: int | None
     lastGiveArea: np.ndarray | None
     wanted: list[tuple[int, int]]
-    
+
     if "MAKING_DEF" in os.environ:
         documentStack: Any
         transcription: Any
@@ -165,7 +181,8 @@ class TAS:
         transcription: Transcription
 
     def __init__(self):
-        pg.PAUSE = 0.05 
+        pg.useImageNotFoundException(False)
+        pg.PAUSE = 0.05
         self.hwnd = None
 
         self.checkHorn = False
@@ -201,7 +218,7 @@ class TAS:
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
 
-        print("Preparing generic assets...")
+        logger.info("Preparing generic assets...")
         TAS.NEXT_BUBBLE = np.asarray(Image.open(
             os.path.join(TAS.ASSETS, "nextBubble.png")
         ).convert("RGB"))
@@ -454,27 +471,35 @@ class TAS:
         Transcription.load()
 
         for document in TAS.DOCUMENTS:
-            print(f"Initializing {document.__name__}...")
+            logger.info(f"Initializing {document.__name__}...")
             document.TAS = TAS
             document.load()
 
         # import all runs
         for module in os.listdir(TAS.RUNS_DIR):
-            if module.endswith(".py") and module != "run.py":
+            if module.endswith(".py"):
                 __import__(f"runs.{module[:-3]}", locals(), globals())
 
         TAS.RUNS = []
         for run in Run.__subclasses__():
-            print(f'Initializing Run "{run.__name__}"...')
+            logger.info(f'Initializing Run "{run.__name__}"...')
             run.TAS = TAS
             inst = run()
             inst.tas = self
             TAS.RUNS.append(inst)
 
-        print("TASBOT initialized!")
+        logger.info("TASBOT initialized!")
 
-    @classmethod
-    def getWinHWDN(self) -> str:
+    @staticmethod
+    def getWinHWND() -> str:
+        """Get the Windows handle for a currently open Papers Please window.
+
+        Returns:
+            Handle for the Papers Please window.
+
+        Raises:
+            TASException: If no matching window exists.
+        """
         topList = []
         winList = []
         win32gui.EnumWindows(
@@ -489,26 +514,41 @@ class TAS:
         raise TASException('No "Papers Please" window was found')
 
     def getScreen(self) -> Image.Image:
+        """Get a screenshot of the window in its current state.
+
+        Returns:
+            Screenshot of the window as an Image in RGB format.
+        """
         return ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB")
     
     def mouseOffset(self, x: int, y: int) -> tuple[int, int]:
+        """Converts point from window coordinates to screen coordinates."""
         bX, bY, _, _ = win32gui.GetWindowRect(self.hwnd)
         return (bX + x, bY + y)        
 
     def moveTo(self, at: tuple[int, int]) -> None:
+        """Moves mouse to point given in window coordinates."""
         pg.moveTo(*self.mouseOffset(*at))
 
     def click(self, at: tuple[int, int]) -> None:
+        """Click on the point given in window coordinates."""
         self.moveTo(at)
         pg.mouseDown()
         pg.mouseUp()
 
     def dragTo(self, at: tuple[int, int]) -> None:
+        """Drags from the current mouse position to the point given in window coordinates and releases."""
         pg.mouseDown()
         self.moveTo(at)
         pg.mouseUp()
 
     def dragToWithGive(self, at: tuple[int, int]) -> None:
+        """Drags from the current mouse position to the point given, but waits for a "Give" banner before releasing.
+
+        After dragging to the given coordinates, waits for a "Give" banner to appear indicating that the entrant
+        will accept a document dropped on them. While waiting, moves the mouse around in a small area near the given
+        point to allow the give banner to move out from behind textboxes.
+        """
         pg.mouseDown()
         self.moveTo(at)
 
@@ -532,6 +572,10 @@ class TAS:
         pg.mouseUp()
 
     def waitForDoorChange(self) -> None:
+        """Waits for a change on screen in the areas directly outside the booth to the left or right.
+
+        If the "checkHorn" flag is set, will also stop waiting if the Sleep button appears.
+        """
         screen = self.getScreen()
         before = (
             np.asarray(screen.crop(EXIT_AREAS[0])),
@@ -549,31 +593,72 @@ class TAS:
             ): break
 
     def waitForAreaChange(self, area: tuple[int, int, int, int]) -> np.ndarray:
+        """Wait for a change in the given screen area, continuously scanning that area of the screen.
+
+        Args:
+            area: The (left, top, right, bottom) of an area on the screen in window coordinates.
+
+        Returns:
+            The cropped screen image of the give area after a change is seen.
+        """
         before = np.asarray(self.getScreen().crop(area))
         while np.array_equal(before, np.asarray(self.getScreen().crop(area))): pass
         return before
 
     def waitForGiveAreaChange(self, *, update: bool = True, sleep: bool = True) -> None:
+        """Waits for a change in the "give area" of the screen.
+
+        Continuously scans the give area of the screen (the counter on the left side of the booth where the entrant
+        gives their documents), waiting for a change.
+
+        Args:
+            update: Whether to update lastGiveArea with the current cropped screen image after waiting.
+            sleep: Whether to sleep for an additional 0.25 seconds after waiting.
+        """
         if update: self.lastGiveArea = self.waitForAreaChange(GIVE_AREA)
         else:                          self.waitForAreaChange(GIVE_AREA)
 
         if sleep: time.sleep(0.25)
 
     def waitFor(self, button: Image.Image, *, move: bool = True) -> pg.Point:
+        """Waits for the button image to appear on screen.
+
+        Continuously scans the screen, waiting for the button image to be visible.
+
+        Args:
+            button: The image of a button to wait for.
+            move: Whether to move the mouse to the upper-left corner of the screen at the start before waiting, to
+                ensure it is not in the way of the button.
+
+        Returns:
+            The coordinates of the center of the button.
+        """
         if move: self.moveTo((0, 0))
         while True:
             box = pg.locate(button, self.getScreen())
             if box is not None: return pg.center(box)
 
     def waitForSleepButton(self) -> None:
+        """Waits for the sleep button to appear, then waits an additional 0.5 seconds."""
         self.waitFor(TAS.BUTTONS["sleep"])
         time.sleep(0.5)
 
     def goToWantedCriminals(self) -> None:
+        """Turns the page of the bulletin until the wanted criminals page is seen."""
         while pg.locate(TAS.WANTED_CRIMINALS, self.getScreen()) is None:
             self.click(BULLETIN_NEXT_BUTTON)
 
     def nextPartial(self) -> bool:
+        """Waits for a change in the areas outside the door, then clicks the horn. Does not wait for entrant's arrival.
+
+        If "weight" is None, indicating this is the first entrant, prepares the bulletin, flipping to the wanted
+        criminals change if "WANTED_CHECK" is True, or otherwise moving the bulletin to its slot on the left desk.
+        If "checkHorn" is True, checks the area above the horn for the "Next" message bubble and waits for the end of
+        day sleep button if it did not appear.
+
+        Returns:
+            True if the next entrant was called, False it waited for the sleep button.
+        """
         # if weight is none, this is first person: no need to wait
         if self.weight is None: 
             if TAS.WANTED_CHECK and self.date >= TAS.DAY_14:
@@ -607,6 +692,17 @@ class TAS:
             return True
 
     def next(self) -> bool:
+        """Waits for a change in the areas outside the door, clicks the horn, and waits for documents to appear.
+
+        If "weight" is None, indicating this is the first entrant, prepares the bulletin, flipping to the wanted
+        criminals change if "WANTED_CHECK" is True, or otherwise moving the bulletin to its slot on the left desk.
+        If "checkHorn" is True, checks the area above the horn for the "Next" message bubble and waits for the end of
+        day sleep button if it did not appear.
+        Once the entrant arrives and presents their documents, records their weight.
+
+        Returns:
+            True if it waited for the sleep button, False if the next entrant was called.
+        """
         if self.nextPartial():
             self.waitForGiveAreaChange()
 
@@ -631,20 +727,44 @@ class TAS:
 
     # menu utilities
     def waitForAllTicks(self) -> None:
+        """Waits for all ticks on the night screen to appear."""
         self.waitFor(TAS.DOLLAR_SIGN)
         self.moveTo((0, 0))
 
     def clickOnTick(self, tick: str) -> None:
+        """Clicks on a tick on the night screen.
+
+        Locates the given tick on the night screen and clicks on the center of it.
+
+        Args:
+            tick: The name of the tick to click.
+
+        Raises:
+            TypeError: If tick is not located on screen.
+        """
         self.click((END_TICK_X, pg.center(pg.locate(TAS.TICKS[tick], self.getScreen())).y))
 
     def story(self) -> None:
+        """Clicks the Story button on the main menu of the game."""
         self.click(STORY_BUTTON)
         time.sleep(MENU_DELAY)
 
     def startRun(self) -> None:
+        """Starts the run timer."""
         self.sTime = time.time()
 
     def endingTime(self, endingN: int) -> float:
+        """Gets the time since the run started and records it in the endingTime dictionary.
+
+        Args:
+            endingN: The ending number and the key of endingTime to record to.
+
+        Returns:
+            The current time since the run started.
+
+        Raises:
+            TASException: If the timer was never started.
+        """
         if self.sTime is None:
             raise TASException("Timer was never started (tas.sTime is None)")
 
@@ -653,6 +773,7 @@ class TAS:
         return t
 
     def newGame(self) -> None:
+        """Starts a new run from the main menu and clicks through the intro cutscene."""
         self.date = TAS.DAY_1
         self.story()
         self.click(NEW_BUTTON)
@@ -662,6 +783,7 @@ class TAS:
         time.sleep(MENU_DELAY)
 
     def daySetup(self) -> None:
+        """Sets up for the day by clicking "Walk to work" and setting flags to their default state."""
         self.click(INTRO_BUTTON)
         time.sleep(DAY_DELAY)
         self.checkHorn        = False
@@ -671,26 +793,41 @@ class TAS:
         self.wanted           = []
 
     def dayEnd(self) -> None:
+        """Ends the day by clicking the sleep button and incrementing the date."""
         self.checkHorn = False
         self.click(SLEEP_BUTTON)
         time.sleep(MENU_DELAY)
         self.date += timedelta(days = 1)
 
     def restartFrom(self, day: tuple[int, int], date: date, story: bool = True) -> None:
+        """Restarts from an earlier day by clicking on given coordinates for the save and setting the date.
+
+        Args:
+            day: The point to click for the day save in window coordinates.
+            date: The date of the day to load.
+            story: Whether to click the story button before the day save. Should be True if currently on the main menu.
+        """
         if story: self.story()
         self.click(day)
         time.sleep(0.25)
         self.click(CONTINUE_BUTTON)
         time.sleep(MENU_DELAY)
-        self.date = date 
+        self.date = date
 
     # endings
     def ending(self, endingN: int, clicks: int, *, credits: bool = False) -> None:
+        """Clicks the "Next" button until an ending cutscene is complete and returns to the main menu.
+
+        Args:
+            endingN: The ending number. Only used for logging and recording when the ending was completed.
+            clicks: How many times to click "Next" in the ending.
+            credits: Whether the ending has credits. Determines how it returns to the main menu.
+        """
         for _ in range(clicks):
             self.waitFor(TAS.BUTTONS["next"])
             self.click(INTRO_BUTTON)
 
-        print(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
+        logger.info(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
 
         if credits:
             self.waitFor(TAS.BUTTONS["credits"])
@@ -708,67 +845,100 @@ class TAS:
         time.sleep(2)
 
     def ending1(self) -> None:
+        """Completes ending 1 by clicking the Next button several times and returning to the main menu."""
         self.ending(1, 5)
 
     def ending2(self) -> None:
+        """Completes ending 2 by clicking the Next button several times and returning to the main menu."""
         self.ending(2, 5)
 
     def ending3(self) -> None:
+        """Completes ending 3 by clicking the Next button several times and returning to the main menu."""
         self.ending(3, 3)
 
     def ending4(self) -> None:
+        """Completes ending 4 by clicking the Next button several times and returning to the main menu."""
         self.ending(4, 5)
 
     def ending5(self) -> None:
+        """Completes ending 5 by clicking the Next button several times and returning to the main menu."""
         self.ending(5, 5)
 
     def ending6(self) -> None:
+        """Completes ending 6 by clicking the Next button several times and returning to the main menu."""
         self.ending(6, 5)
 
     def ending7(self) -> None:
+        """Completes ending 7 by clicking the Next button several times and returning to the main menu."""
         self.ending(7, 5)
 
     def ending8(self) -> None:
+        """Completes ending 8 by clicking the Next button several times and returning to the main menu."""
         self.ending(8, 5)
 
     def ending9(self) -> None:
+        """Completes ending 9 by clicking the Next button several times and returning to the main menu."""
         self.ending(9, 10)
 
     def ending10(self) -> None:
+        """Completes ending 10 by clicking the Next button several times and returning to the main menu."""
         self.ending(10, 10)
 
     def ending11(self) -> None:
+        """Completes ending 11 by clicking the Next button several times and returning to the main menu."""
         self.ending(11, 5)
 
     def ending12(self) -> None:
+        """Completes ending 12 by clicking the Next button several times and returning to the main menu."""
         self.ending(12, 5)
 
     def ending13(self) -> None:
+        """Completes ending 13 by clicking the Next button several times and returning to the main menu."""
         self.ending(13, 5)
 
     def ending14(self) -> None:
+        """Completes ending 14 by clicking the Next button several times and returning to the main menu."""
         self.ending(14, 14)
 
     def ending15(self) -> None:
+        """Completes ending 15 by clicking the Next button several times and returning to the main menu."""
         self.ending(15, 7)
 
     def ending16(self) -> None:
+        """Completes ending 16 by clicking the Next button several times and returning to the main menu."""
         self.ending(16, 16)
 
     def ending17(self) -> None:
+        """Completes ending 17 by clicking the Next button several times and returning to the main menu."""
         self.ending(17, 11)
 
     def ending18(self) -> None:
+        """Completes ending 18 by clicking the Next button several times and returning to the main menu."""
         self.ending(18, 19, credits = True)
 
     def ending19(self) -> None:
+        """Completes ending 19 by clicking the Next button several times and returning to the main menu."""
         self.ending(19, 7, credits = True)
 
     def ending20(self) -> None:
+        """Completes ending 20 by clicking the Next button several times and returning to the main menu."""
         self.ending(20, 11, credits = True)
 
     # basic document handling utilities
     def handleConfiscate(self, pos: tuple[int, int], *, detain: bool = False) -> None:
+        """Confiscates the passport depending on the state of the "confiscate" flag.
+
+        Confiscates the passport if the "confiscate" flag is set and this is not running from within "noConfiscate()".
+        If confiscating, sets the "confiscate" flag to False.
+
+        Args:
+            pos: The position of the passport in window coordinates.
+            detain: Whether the entrant will be detained after confiscation. If False, moves the Visa slip to "pos".
+
+        Raises:
+            TASException: If the "confiscate" flag is True and current date is a day before day 24, making
+                confiscation impossible.
+        """
         if self.doConfiscate and self.confiscate:
             self.confiscate = False
 
@@ -789,6 +959,22 @@ class TAS:
         if not detain: self.detain = False
 
     def handleConfiscateAndDetain(self, pos: tuple[int, int]) -> bool:
+        """Confiscates the passport and detains depending on the states of the "confiscate" and "detain" flags.
+
+        Confiscates the passport if the "confiscate" flag is set and this is not running from within "noConfiscate()".
+        If confiscating, sets the "confiscate" flag to False, and if detaining, sets the "detain" flag to False.
+
+        Args:
+            pos: The position of the passport in window coordinates.
+
+        Returns:
+            Whether the entrant was detained.
+
+        Raises:
+            TASException: If the "confiscate" flag is True and current date is a day before day 24, making
+                confiscation impossible, or the "detain" flag is True and current date is a day before day 5,
+                making detention impossible.
+        """
         self.handleConfiscate(pos, detain = self.detain)
 
         if self.detain:
@@ -808,6 +994,16 @@ class TAS:
         return False
 
     def allowAndGive(self, *, close: bool = False, waitClose: bool = True) -> None:
+        """Approves the entrant and returns their passport.
+
+        Opens the stamp bar and presses the approval stamp, then returns the passport.
+        If the "confiscate" flag is True, confiscates the passport before approval.
+
+        Args:
+            close: Whether to close the stamp bar after stamping.
+            waitClose: Whether to wait for the stamp bar to finish closing before returning the passport.
+                Ignored if "close" is False.
+        """
         self.handleConfiscate(PASSPORT_ALLOW_POS)
 
         self.click(STAMP_ENABLE)
@@ -823,6 +1019,16 @@ class TAS:
         self.dragToWithGive(PERSON_PASSPORT_POS)
 
     def denyAndGive(self, *, close: bool = False, waitClose: bool = True) -> None:
+        """Denies the entrant and returns their passport.
+
+        Opens the stamp bar and presses the deny stamp, then returns the passport.
+        If the "confiscate" flag is True, confiscates the passport before denial.
+
+        Args:
+            close: Whether to close the stamp bar after stamping.
+            waitClose: Whether to wait for the stamp bar to finish closing before returning the passport.
+                Ignored if "close" is False.
+        """
         self.handleConfiscate(PAPER_SCAN_POS)
 
         self.click(STAMP_ENABLE)
@@ -838,6 +1044,15 @@ class TAS:
         self.dragToWithGive(PERSON_PASSPORT_POS)
 
     def passportOnlyAllow(self, *, nextCheck: bool = True) -> bool:
+        """Takes the passport from the left counter, approves it, and returns it to the entrant.
+
+        Args:
+            nextCheck: Whether to call the next entrant and wait for their documents first.
+
+        Returns:
+            True if the entrant was approved, False if no next entrant was available, and it waited for the sleep
+            button instead.
+        """
         if nextCheck:
             if self.next(): return False
 
@@ -848,6 +1063,15 @@ class TAS:
         return True
 
     def passportOnlyDeny(self, *, nextCheck: bool = True) -> bool:
+        """Takes the passport from the left counter, denies it, and returns it to the entrant.
+
+        Args:
+            nextCheck: Whether to call the next entrant and wait for their documents first.
+
+        Returns:
+            True if the entrant was denied, False if no next entrant was available, and it waited for the sleep
+            button instead.
+        """
         if nextCheck:
             if self.next(): return False
         
@@ -858,6 +1082,12 @@ class TAS:
         return True
 
     def docScan(self, *, move: bool = True) -> Document | Passport | Nation | None:
+        """Drags the next document from the left counter and scans it, returning the appropriate document object.
+
+
+        Raises:
+            TASException: If the "poison" flag is True and current date is not day 20, making poisoning impossible.
+        """
         # take document screenshot
         before = np.asarray(self.getScreen().crop(TABLE_AREA))
         if move: self.moveTo(PAPER_POS)
@@ -1116,7 +1346,7 @@ class TAS:
         while True:
             self.moveTo(PAPER_POS)
             doc: Document | Passport = self.docScan(move = False)
-            if TAS.DEBUG: print(doc)
+            if TAS.DEBUG: logger.info(doc)
             self.moveTo(PAPER_SCAN_POS)
 
             if type(doc) is Passport:
@@ -2060,42 +2290,3 @@ class TAS:
         TAS.DAY4_PICTURE_CHECK = False
         func()
         TAS.DAY4_PICTURE_CHECK = tmp
-
-    @staticmethod
-    def select(msg: str, options: list) -> int:
-        while True:
-            print(msg)
-            for i, opt in enumerate(options):
-                print(f"{i + 1}) {opt}")
-
-            res = input()
-            try:
-                _ = int(res)
-            except ValueError: pass
-            else:
-                res = int(res) - 1
-                if 0 <= res < len(options):
-                    return res
-                
-            print("Invalid input.")
-
-    def run(self) -> None:
-        while True:
-            i   = TAS.select("Select run:", [run.__class__.__name__ for run in TAS.RUNS])
-            act = TAS.select("Select action:", ["Run", "Test", "View credits"])
-            
-            if act in (0, 1):
-                self.hwnd = self.getWinHWDN()
-                shell = win32com.client.Dispatch("WScript.Shell")
-                shell.SendKeys('%')
-                win32gui.SetForegroundWindow(self.hwnd)
-
-            match act:
-                case 0:
-                    TAS.RUNS[i].run()
-                case 1:
-                    TAS.RUNS[i].test()
-                case 2:
-                    print(TAS.RUNS[i].credits())
-
-if __name__ == "__main__": TAS().run()

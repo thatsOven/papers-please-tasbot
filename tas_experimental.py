@@ -1,11 +1,14 @@
-from tas import *
-
 # **NOTE**
 # this is an experimental patch for the bot to work for the latest version of the game (1.4.11.124).
 # it currently can only (somewhat) play day 1 but it's here as a start.
 # 
 # for the bot to work, the game language has to be english, 
 # the date format must be 1982-1-23, and the game must be fullscreen in 1920x1080 resolution
+
+from tas import *
+import logging
+
+logger = logging.getLogger('tas.' + __name__)
 
 OLD_WINDOW_OFFSET     = (8, 31)
 OLD_WINDOW_RESOLUTION = (1140, 640)
@@ -20,7 +23,7 @@ class NewTAS(TAS):
     def __init__(self):
         super().__init__()
         
-        print("**EXPERIMENTAL VERSION**")
+        logger.info("**EXPERIMENTAL VERSION**")
         pg.PAUSE = 0.034 
 
         passportTypes = list(TAS.PASSPORT_TYPES)

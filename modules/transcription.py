@@ -8,6 +8,11 @@ from modules.utils              import *
 
 from modules.textRecognition import parseText
 
+import logging
+
+logger = logging.getLogger('tas.' + __name__)
+
+
 class Who(Enum):
     INSPECTOR, ENTRANT = "INSPECTOR", "ENTRANT"
 
@@ -283,7 +288,7 @@ class Transcription:
 
         if Transcription.TAS.DEBUG:
             for line in self.conversation:
-                print(line)
+                logger.info(line)
 
     def __getPos(self, field: AnalyzeData) -> tuple[int, int, int, int] | None:
         if field.message is None:
