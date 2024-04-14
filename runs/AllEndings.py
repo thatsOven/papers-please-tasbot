@@ -1,5 +1,5 @@
-from run      import Run
-from enum     import Enum
+from modules.run import Run
+from enum        import Enum
 import time, numpy as np
 
 from modules.constants.screen import *
