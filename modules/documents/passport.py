@@ -10,8 +10,6 @@ from modules.textRecognition    import parseDate, parseText
 from modules.documents.document import convertBox, getBox
 from modules.utils              import *
 
-from modules.documents.arstotzkanID import ArstotzkanID, District
-
 class City(Enum):
     (
         ST_MARMERO, GLORIAN, OUTER_GROUSE, 

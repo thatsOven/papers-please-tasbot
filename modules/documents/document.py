@@ -49,11 +49,7 @@ class Document(ABC):
 
     @staticmethod
     def getBgs(layout: dict[str, tuple], tableOffset: tuple[int, int], innerTexture: Image.Image) -> dict[str, Image.Image]:
-        backgrounds = {}
-        for key, box in layout.items():
-            backgrounds[key] = innerTexture.crop(convertBox(box, tableOffset))
-        
-        return backgrounds
+        return {key: innerTexture.crop(convertBox(box, tableOffset)) for key, box in layout.items()}
     
     @staticmethod
     def __sealFilter(sealArea: np.ndarray, background: Image.Image, whiteBg: Image.Image) -> np.ndarray:
