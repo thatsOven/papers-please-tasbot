@@ -28,7 +28,6 @@
 # the date format must be 1982-1-23, and the game must be windowed, in default resolution
 #
 # **TODO**
-# - maybe rewrite text recognition in cython for performance
 # - make gui
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using "next!" bubble
@@ -52,7 +51,7 @@ from modules.constants.screen import *
 from modules.constants.other  import *
 from modules.utils            import *
 
-from modules.textRecognition          import charCheck, parseText, digitCheck, digitLength
+from modules.textRecognition          import STATIC_OBJ, parseText, digitCheck, digitLength
 from modules.transcription            import Transcription
 from modules.documentStack            import DocumentStack, TASException
 from modules.documents.document       import Document
@@ -440,9 +439,9 @@ class TAS:
         TAS.DOCUMENTS = Document.__subclasses__()
 
         # this weird thing avoids circular imports
-        charCheck.BM_MINI    = TAS.FONTS["bm-mini"]
-        charCheck.MINI_KYLIE = TAS.FONTS["mini-kylie"]
-        charCheck._04B03     = TAS.FONTS["04b03"]
+        STATIC_OBJ.BM_MINI    = TAS.FONTS["bm-mini"]
+        STATIC_OBJ.MINI_KYLIE = TAS.FONTS["mini-kylie"]
+        STATIC_OBJ._04B03     = TAS.FONTS["04b03"]
 
         Passport.TAS      = TAS
         Document.TAS      = TAS
