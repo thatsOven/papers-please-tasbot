@@ -70,6 +70,10 @@ from modules.documents.passport       import (
     City, Nation, Sex, PassportData, PassportType, Passport
 )
 
+import logging
+
+logger = logging.getLogger('tas.' + __name__)
+
 
 class Run(ABC):
     if "MAKING_DEF" not in os.environ:
@@ -213,7 +217,7 @@ class TAS:
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
 
-        print("Preparing generic assets...")
+        logger.info("Preparing generic assets...")
         TAS.NEXT_BUBBLE = np.asarray(Image.open(
             os.path.join(TAS.ASSETS, "nextBubble.png")
         ).convert("RGB"))
@@ -466,7 +470,7 @@ class TAS:
         Transcription.load()
 
         for document in TAS.DOCUMENTS:
-            print(f"Initializing {document.__name__}...")
+            logger.info(f"Initializing {document.__name__}...")
             document.TAS = TAS
             document.load()
 
@@ -477,13 +481,13 @@ class TAS:
 
         TAS.RUNS = []
         for run in Run.__subclasses__():
-            print(f'Initializing Run "{run.__name__}"...')
+            logger.info(f'Initializing Run "{run.__name__}"...')
             run.TAS = TAS
             inst = run()
             inst.tas = self
             TAS.RUNS.append(inst)
 
-        print("TASBOT initialized!")
+        logger.info("TASBOT initialized!")
 
     @classmethod
     def getWinHWDN(self) -> str:
@@ -702,7 +706,7 @@ class TAS:
             self.waitFor(TAS.BUTTONS["next"])
             self.click(INTRO_BUTTON)
 
-        print(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
+        logger.info(f"ENDING {endingN}: {str(timedelta(seconds = self.endingTime(endingN)))}")
 
         if credits:
             self.waitFor(TAS.BUTTONS["credits"])
@@ -1128,7 +1132,7 @@ class TAS:
         while True:
             self.moveTo(PAPER_POS)
             doc: Document | Passport = self.docScan(move = False)
-            if TAS.DEBUG: print(doc)
+            if TAS.DEBUG: logger.info(doc)
             self.moveTo(PAPER_SCAN_POS)
 
             if type(doc) is Passport:
@@ -2072,42 +2076,3 @@ class TAS:
         TAS.DAY4_PICTURE_CHECK = False
         func()
         TAS.DAY4_PICTURE_CHECK = tmp
-
-    @staticmethod
-    def select(msg: str, options: list) -> int:
-        while True:
-            print(msg)
-            for i, opt in enumerate(options):
-                print(f"{i + 1}) {opt}")
-
-            res = input()
-            try:
-                _ = int(res)
-            except ValueError: pass
-            else:
-                res = int(res) - 1
-                if 0 <= res < len(options):
-                    return res
-                
-            print("Invalid input.")
-
-    def run(self) -> None:
-        while True:
-            i   = TAS.select("Select run:", [run.__class__.__name__ for run in TAS.RUNS])
-            act = TAS.select("Select action:", ["Run", "Test", "View credits"])
-            
-            if act in (0, 1):
-                self.hwnd = self.getWinHWDN()
-                shell = win32com.client.Dispatch("WScript.Shell")
-                shell.SendKeys('%')
-                win32gui.SetForegroundWindow(self.hwnd)
-
-            match act:
-                case 0:
-                    TAS.RUNS[i].run()
-                case 1:
-                    TAS.RUNS[i].test()
-                case 2:
-                    print(TAS.RUNS[i].credits())
-
-if __name__ == "__main__": TAS().run()

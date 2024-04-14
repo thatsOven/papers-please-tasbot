@@ -30,10 +30,29 @@ for RunSubclass in Run.__subclasses__():
     RUNS.append(inst)
 
 
+def select(msg: str, options: list) -> int:
+    while True:
+        print(msg)
+        for i, opt in enumerate(options):
+            print(f"{i + 1}) {opt}")
+
+        res = input()
+        try:
+            _ = int(res)
+        except ValueError:
+            pass
+        else:
+            res = int(res) - 1
+            if 0 <= res < len(options):
+                return res
+
+        print("Invalid input.")
+
+
 def run():
     while True:
-        i = TAS.select("Select run:", [run.__class__.__name__ for run in RUNS])
-        act = TAS.select("Select action:", ["Run", "Test", "View credits"])
+        i = select("Select run:", [run.__class__.__name__ for run in RUNS])
+        act = select("Select action:", ["Run", "Test", "View credits"])
 
         if act in (0, 1):
             tas.hwnd = tas.getWinHWDN()
