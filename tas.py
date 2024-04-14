@@ -19,6 +19,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from abc import ABC, abstractmethod
 
 # **NOTE**
 # *IMPORTANT*: the only tested version is 1.1.67-S. 
@@ -26,13 +27,9 @@
 # 
 # for the bot to work, the game language has to be english, 
 # the date format must be 1982-1-23, and the game must be windowed, in default resolution
-# 
-# *FOR DEVELOPERS*: when modifying methods of the TAS class, or adding new ones, be sure to run
-#                   (or edit, in some cases) makeTASDef.py for better syntax highlighting and ide hints
-#                   when creating runs.
 #
 # **TODO**
-# - maybe rewrite text recognition in cython for performance + integrate build/run tool with makeTASDef.py
+# - maybe rewrite text recognition in cython for performance
 # - make gui
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using "next!" bubble
@@ -73,7 +70,22 @@ from modules.documents.passport       import (
     City, Nation, Sex, PassportData, PassportType, Passport
 )
 
-from runs.run import Run
+
+class Run(ABC):
+    if "MAKING_DEF" not in os.environ:
+        TAS: ClassVar[TAS] = None
+        tas: TAS
+
+    @abstractmethod
+    def run(self):
+        ...
+
+    def credits(self):
+        return "No credits"
+
+    def test(self):
+        ...
+
 
 class TAS:
     DEBUG: ClassVar[bool] = True
@@ -460,7 +472,7 @@ class TAS:
 
         # import all runs
         for module in os.listdir(TAS.RUNS_DIR):
-            if module.endswith(".py") and module != "run.py":
+            if module.endswith(".py"):
                 __import__(f"runs.{module[:-3]}", locals(), globals())
 
         TAS.RUNS = []
