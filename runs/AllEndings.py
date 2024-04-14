@@ -790,7 +790,7 @@ class AllEndings(Run):
             self.tas.click(PASSPORT_CONFISCATE_POS)
             time.sleep(PASSPORT_DRAWER_OPEN_TIME)
             # give passport to ezic agent
-            self.tas.moveTo(self.waitFor(AllEndings.TAS.PASSPORT_KORDON_KALLO))
+            self.tas.moveTo(self.tas.waitFor(self.tas.PASSPORT_KORDON_KALLO))
             self.tas.dragToWithGive(PERSON_PASSPORT_POS)
             # wait for them to give it back
             self.tas.waitForGiveAreaChange(sleep = False) 
@@ -998,7 +998,7 @@ class AllEndings(Run):
         self.day2(ending1 = True)
         self.tas.ending1()
 
-        self.tas.restartFrom((DAYS_X[1], DAYS_Y[0]), AllEndings.TAS.DAY_2)
+        self.tas.restartFrom((DAYS_X[1], DAYS_Y[0]), self.tas.DAY_2)
         self.day2(ending1 = False)
         self.day3()
         self.day4()
@@ -1045,30 +1045,30 @@ class AllEndings(Run):
         self.day26(ending12 = True, bills = True)
         self.tas.ending12()
 
-        self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), AllEndings.TAS.DAY_25)
+        self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), self.tas.DAY_25)
         self.day25(shae = True, bills = False)
         self.day26(ending12 = False, bills = False)
         self.day27(ezic = True, bills = False)
         self.day28(mode = Day28Mode.KILL_CIVILIAN, bills = True)
         self.tas.ending5() 
 
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.TAS.DAY_28)
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
         self.day28(mode = Day28Mode.TRANQ_CIVILIAN, bills = True)
         self.tas.ending6()
 
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.TAS.DAY_28)
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
         self.day28(mode = Day28Mode.KILL_GUARD, bills = True)
         self.tas.ending7()
 
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.TAS.DAY_28)
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
         self.day28(mode = Day28Mode.TRANQ_GUARD, bills = True)
         self.tas.ending8()
 
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.TAS.DAY_28)
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
         self.day28(mode = Day28Mode.DEFAULT, bills = False)
         self.tas.ending2()
 
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.TAS.DAY_28)
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
         self.day28(mode = Day28Mode.DEFAULT, bills = True)
         self.day29(getObri = False)
         self.day30(familyPic = True, givePhoto = False)
@@ -1091,7 +1091,7 @@ class AllEndings(Run):
         self.day31(shootMode = Day31ShootMode.NO, escapeMode = Day31EscapeMode.NO, ezic = True)
         self.tas.ending19()
 
-        self.tas.restartFrom((DAYS_X[-5], DAYS_Y[2]), AllEndings.TAS.DAY_27)
+        self.tas.restartFrom((DAYS_X[-5], DAYS_Y[2]), self.tas.DAY_27)
         self.day27(ezic = False, bills = True)
         self.day28(mode = Day28Mode.DEFAULT, bills = True)
         self.day29(getObri = True)
@@ -1112,7 +1112,7 @@ class AllEndings(Run):
         for _ in range(2):
             self.tas.moveTo((DAYS_X[ 0], DAYS_Y[4]))
             self.tas.dragTo((DAYS_X[-1], DAYS_Y[4]))
-        self.tas.restartFrom((DAYS_X[4], DAYS_Y[1]), AllEndings.TAS.DAY_14, story = False)
+        self.tas.restartFrom((DAYS_X[4], DAYS_Y[1]), self.tas.DAY_14, story = False)
         self.day14(safe = False, messenger = False, ezic = False)
         self.day15(ending4 = False)
         self.day16()

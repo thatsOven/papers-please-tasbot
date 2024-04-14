@@ -21,10 +21,9 @@ for module in os.listdir(pathlib.Path('./runs')):
     if module.endswith(".py"):
         __import__(f"runs.{module[:-3]}", locals(), globals())
 
-RUNS = []
+RUNS: list[Run] = []
 for RunSubclass in Run.__subclasses__():
     logger.info(f'Initializing Run "{RunSubclass.__name__}"...')
-    RunSubclass.TAS = TAS
     inst = RunSubclass()
     inst.tas = tas
     RUNS.append(inst)
@@ -49,13 +48,13 @@ def select(msg: str, options: list) -> int:
         print("Invalid input.")
 
 
-def run():
+def main():
     while True:
         i = select("Select run:", [run.__class__.__name__ for run in RUNS])
         act = select("Select action:", ["Run", "Test", "View credits"])
 
         if act in (0, 1):
-            tas.hwnd = tas.getWinHWDN()
+            tas.hwnd = tas.getWinHWND()
             shell = win32com.client.Dispatch("WScript.Shell")
             shell.SendKeys('%')
             win32gui.SetForegroundWindow(tas.hwnd)
@@ -68,6 +67,4 @@ def run():
             case 2:
                 print(RUNS[i].credits())
 
-
-if __name__ == '__main__':
-    run()
+if __name__ == '__main__': main()

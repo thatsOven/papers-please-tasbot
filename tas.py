@@ -45,8 +45,8 @@ from deskew            import determine_skew
 from datetime          import date, timedelta
 from skimage.color     import rgb2gray
 from skimage.transform import rotate
-from typing            import Callable, ClassVar, Any
-import win32gui, win32com.client, time, os, math, pyautogui as pg, numpy as np
+from typing            import Callable, ClassVar
+import win32gui, time, os, math, pyautogui as pg, numpy as np
 
 from modules.constants.delays import *
 from modules.constants.screen import *
@@ -73,23 +73,6 @@ from modules.documents.passport       import (
 import logging
 
 logger = logging.getLogger('tas.' + __name__)
-
-
-class Run(ABC):
-    if "MAKING_DEF" not in os.environ:
-        TAS: ClassVar[TAS] = None
-        tas: TAS
-
-    @abstractmethod
-    def run(self):
-        ...
-
-    def credits(self):
-        return "No credits"
-
-    def test(self):
-        ...
-
 
 class TAS:
     DEBUG: ClassVar[bool] = True
@@ -173,12 +156,8 @@ class TAS:
     lastGiveArea: np.ndarray | None
     wanted: list[tuple[int, int]]
 
-    if "MAKING_DEF" in os.environ:
-        documentStack: Any
-        transcription: Any
-    else:
-        documentStack: DocumentStack
-        transcription: Transcription
+    documentStack: DocumentStack
+    transcription: Transcription
 
     def __init__(self):
         pg.useImageNotFoundException(False)
@@ -474,19 +453,6 @@ class TAS:
             logger.info(f"Initializing {document.__name__}...")
             document.TAS = TAS
             document.load()
-
-        # import all runs
-        for module in os.listdir(TAS.RUNS_DIR):
-            if module.endswith(".py"):
-                __import__(f"runs.{module[:-3]}", locals(), globals())
-
-        TAS.RUNS = []
-        for run in Run.__subclasses__():
-            logger.info(f'Initializing Run "{run.__name__}"...')
-            run.TAS = TAS
-            inst = run()
-            inst.tas = self
-            TAS.RUNS.append(inst)
 
         logger.info("TASBOT initialized!")
 
@@ -2290,3 +2256,16 @@ class TAS:
         TAS.DAY4_PICTURE_CHECK = False
         func()
         TAS.DAY4_PICTURE_CHECK = tmp
+
+class Run(ABC):
+    tas: TAS
+
+    @abstractmethod
+    def run(self):
+        ...
+
+    def credits(self):
+        return "No credits"
+
+    def test(self):
+        ...
