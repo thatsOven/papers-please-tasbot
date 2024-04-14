@@ -10,12 +10,12 @@ def getCharLength(font: ImageFont.FreeTypeFont, c: str, space: bool = False) -> 
     # i've never worked with truetype, but wtf?
     if font is charCheck.BM_MINI:
         return int(font.getlength(c)) - (1 if space else 3)
-    
-    if c == " ":
-        if font is charCheck._04B03: 
-            return 3 if space else 2
-        if font is charCheck.MINI_KYLIE and space:
-            return int(font.getlength(c)) - 1
+
+    if font is charCheck.MINI_KYLIE and space:
+        return int(font.getlength(c)) - 1
+
+    if c == " " and font is charCheck._04B03:
+        return 3 if space else 2
     
     return int(font.getlength(c)) - (0 if space else 3)
 
