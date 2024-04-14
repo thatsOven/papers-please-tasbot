@@ -116,56 +116,6 @@ class VaxCert(Document):
         self.name: Name              = name
         self.number                  = number
         self.vaccines: list[Vaccine] = vaccines
-
-    def checkDiscrepancies(self, _) -> bool:
-        return True # this is never called
-    
-    def checkDiscrepanciesWithReason(self, tas) -> bool:
-        for vax in self.vaccines:
-            if vax.disease == Disease.POLIO:
-                if vax.date + relativedelta(years = 3) <= tas.date:
-                    tas.click(INSPECT_BUTTON)
-                    tas.click(onTable(centerOf(
-                        VaxCert.LAYOUT["vax-0"][:2] + offsetPoint(
-                            VaxCert.LAYOUT["vax-0"][:2], 
-                            Vaccine.LAYOUT["date"][2:]
-                        )
-                    )))
-                    tas.click(CLOCK_POS)
-                    time.sleep(INSPECT_INTERROGATE_TIME)
-                    tas.interrogate()
-                    tas.moveTo(PAPER_SCAN_POS)
-                    return True
-
-                return False
-            
-        # point out there's no polio vax
-        tas.moveTo(PAPER_SCAN_POS)
-        tas.dragTo(RIGHT_SCAN_SLOT)
-
-        tas.moveTo(RULEBOOK_POS)
-        tas.dragTo(PAPER_SCAN_POS)
-        tas.click(tas.getRulebook()["documents"]["pos"])
-        tas.click(tas.getRulebook()["documents"]["vax-cert"]["pos"])
-
-        tas.moveTo(PAPER_SCAN_POS)
-        tas.dragTo(LEFT_SCAN_SLOT)
-
-        tas.click(INSPECT_BUTTON)
-        tas.click(onTable(rightSlot(textFieldOffset(offsetPoint(VaxCert.LAYOUT["vax-0"][:2], Vaccine.LAYOUT["disease"][:2])))))
-        tas.click(leftSlot(tas.getRulebook()["documents"]["vax-cert"]["polio-vax-required"]))
-        time.sleep(INSPECT_INTERROGATE_TIME)
-        tas.interrogate()
-
-        tas.moveTo(RIGHT_SCAN_SLOT)
-        tas.dragTo(PAPER_SCAN_POS)
-        
-        tas.moveTo(LEFT_SCAN_SLOT)
-        tas.dragTo(PAPER_SCAN_POS)
-
-        tas.putRulebookBack()
-        tas.moveTo(PAPER_SCAN_POS)
-        return True
     
     def __repr__(self) -> str:
         return f"""==- Certificate Of Vaccination -==

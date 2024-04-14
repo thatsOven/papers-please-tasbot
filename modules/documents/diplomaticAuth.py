@@ -95,103 +95,11 @@ class DiplomaticAuth(Document):
         self.accessTo: list[Nation] = accessTo
         self.sealArea: Image.Image  = sealArea
 
-    def __checkForgery(self) -> bool:        
+    def checkForgery(self) -> bool:        
         return all(Document.checkNoSeal(
             np.asarray(self.sealArea), DiplomaticAuth.BACKGROUNDS["seal-area"],
             seal, DiplomaticAuth.BACKGROUNDS["seal-white"]
         ) for seal in DiplomaticAuth.SEALS[self.nation])
-    
-    def checkDiscrepancies(self, _) -> bool:
-        if Nation.ARSTOTZKA not in self.accessTo: return True
-        return self.__checkForgery()
-
-    def checkDiscrepanciesWithReason(self, tas) -> bool:
-        if Nation.ARSTOTZKA not in self.accessTo:
-            tas.moveTo(PAPER_SCAN_POS)
-            tas.dragTo(RIGHT_SCAN_SLOT)
-
-            tas.moveTo(RULEBOOK_POS)
-            tas.dragTo(PAPER_SCAN_POS)
-            tas.click(tas.getRulebook()["documents"]["pos"])
-            tas.click(tas.getRulebook()["documents"]["diplomatic-auth"]["pos"])
-
-            tas.moveTo(PAPER_SCAN_POS)
-            tas.dragTo(LEFT_SCAN_SLOT)
-
-            tas.click(INSPECT_BUTTON)
-            tas.click(onTable(textFieldOffset(rightSlot(DiplomaticAuth.LAYOUT["access-to-0"][:2]))))
-            tas.click(leftSlot(tas.getRulebook()["documents"]["diplomatic-auth"]["auth-arstotzka"]))
-
-            time.sleep(INSPECT_INTERROGATE_TIME)
-            tas.interrogate()
-
-            tas.moveTo(RIGHT_SCAN_SLOT)
-            tas.dragTo(PAPER_SCAN_POS)
-
-            tas.moveTo(LEFT_SCAN_SLOT)
-            tas.dragTo(PAPER_SCAN_POS)
-            tas.putRulebookBack()
-
-            tas.moveTo(PAPER_SCAN_POS)
-            return True
-        
-        if self.__checkForgery():
-            tas.moveTo(PAPER_SCAN_POS)
-
-            # if there's no seal
-            if not bgFilter(np.asarray(self.sealArea), np.asarray(DiplomaticAuth.BACKGROUNDS["seal-area"])).any():
-                tas.dragTo(RIGHT_SCAN_SLOT)
-
-                tas.moveTo(RULEBOOK_POS)
-                tas.dragTo(PAPER_SCAN_POS)
-                tas.click(tas.getRulebook()["documents"]["pos"])
-                tas.click(tas.getRulebook()["documents"]["diplomatic-auth"]["pos"])
-
-                tas.moveTo(PAPER_SCAN_POS)
-                tas.dragTo(LEFT_SCAN_SLOT)
-
-                tas.click(INSPECT_BUTTON)
-                tas.click(onTable(rightSlot(centerOf(DiplomaticAuth.LAYOUT["seal-area"]))))
-                tas.click(leftSlot(tas.getRulebook()["documents"]["diplomatic-auth"]["document-must-have-seal"]))
-
-                time.sleep(INSPECT_INTERROGATE_TIME)
-                tas.interrogate()
-
-                tas.moveTo(RIGHT_SCAN_SLOT)
-                tas.dragTo(PAPER_SCAN_POS)
-
-                tas.moveTo(LEFT_SCAN_SLOT)
-                tas.dragTo(PAPER_SCAN_POS)
-            else:
-                tas.dragTo(LEFT_SCAN_SLOT)
-
-                tas.moveTo(RULEBOOK_POS)
-                tas.dragTo(PAPER_SCAN_POS)
-
-                tas.click(tas.getRulebook()["region-map"]["pos"])
-                tas.click(tas.getRulebook()["region-map"][self.nation.value.lower()])
-
-                tas.moveTo(PAPER_SCAN_POS)
-                tas.dragTo(RIGHT_SCAN_SLOT)
-
-                tas.click(INSPECT_BUTTON)
-                tas.click(onTable(leftSlot(centerOf(DiplomaticAuth.LAYOUT["seal-area"]))))
-                tas.click(rightSlot(tas.getRulebook()["region-map"]["diplomatic-seal"]))
-
-                time.sleep(INSPECT_INTERROGATE_TIME)
-                tas.interrogate()
-
-                tas.moveTo(LEFT_SCAN_SLOT)
-                tas.dragTo(PAPER_SCAN_POS)
-
-                tas.moveTo(RIGHT_SCAN_SLOT)
-                tas.dragTo(PAPER_SCAN_POS)
-            
-            tas.putRulebookBack()
-            tas.moveTo(PAPER_SCAN_POS)
-            return True
-
-        return False
     
     def __repr__(self) -> str:
         return f"""==- Diplomatic Authorization -==

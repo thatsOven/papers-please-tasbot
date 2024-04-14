@@ -106,113 +106,11 @@ class AccessPermit(Document):
         self.expiration: date      = expiration
         self.sealArea: Image.Image = sealArea
 
-    def __checkForgery(self) -> bool:        
+    def checkForgery(self) -> bool:        
         return all(Document.checkNoSeal(
             np.asarray(self.sealArea), AccessPermit.BACKGROUNDS["seal-area"],
             seal, AccessPermit.BACKGROUNDS["seal-white"]
         ) for seal in AccessPermit.TAS.MOA_SEALS)
-    
-    def checkDiscrepancies(self, _) -> bool:
-        return True # this is never called
-    
-    def checkDiscrepanciesWithReason(self, tas) -> bool:    
-        if tas.allowWrongWeight and tas.weight != self.weight:
-            tas.wrongWeight = True
-            return False
-        
-        if self.expiration <= tas.date:
-            tas.click(INSPECT_BUTTON)
-            tas.click(onTable(centerOf(AccessPermit.LAYOUT["expiration"])))
-            tas.click(CLOCK_POS)
-            time.sleep(INSPECT_INTERROGATE_TIME)
-            tas.interrogate()
-            tas.moveTo(PAPER_SCAN_POS)
-            return True
-        
-        if tas.weight != self.weight:
-            tas.click(INSPECT_BUTTON)
-            tas.click(onTable(centerOf(AccessPermit.LAYOUT["weight"])))
-            tas.click(centerOf(WEIGHT_AREA))
-            time.sleep(INSPECT_INTERROGATE_TIME)
-            tas.interrogate()
-            tas.moveTo(PAPER_SCAN_POS)
-            return True
-        
-        if self.__checkForgery():
-            tas.moveTo(PAPER_SCAN_POS)
-            tas.dragTo(RIGHT_SCAN_SLOT)
-
-            tas.moveTo(RULEBOOK_POS)
-            tas.dragTo(PAPER_SCAN_POS)
-            tas.click(tas.getRulebook()["documents"]["pos"])
-            tas.click(tas.getRulebook()["documents"]["access-permit"]["pos"])
-
-            tas.moveTo(PAPER_SCAN_POS)
-            tas.dragTo(LEFT_SCAN_SLOT)
-
-            tas.click(INSPECT_BUTTON)
-
-            # if there's no seal
-            if not bgFilter(np.asarray(self.sealArea), np.asarray(AccessPermit.BACKGROUNDS["seal-area"])).any():
-                tas.click(onTable(rightSlot(centerOf(AccessPermit.LAYOUT["seal-area"]))))
-                tas.click(leftSlot(tas.getRulebook()["documents"]["access-permit"]["document-must-have-seal"]))
-            else:
-                try:
-                    pos = Document.sealPos(
-                        np.asarray(self.sealArea), AccessPermit.BACKGROUNDS["seal-area"],
-                        AccessPermit.BACKGROUNDS["seal-white"]
-                    )
-                except:
-                    tas.click(onTable(rightSlot(centerOf(AccessPermit.LAYOUT["seal-area"]))))
-                    tas.click(leftSlot(tas.getRulebook()["documents"]["access-permit"]["document-must-have-seal"]))
-                else:
-                    tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), AccessPermit.LAYOUT["seal-area"][:2]))))
-                    tas.click(leftSlot(tas.getRulebook()["documents"]["access-permit"]["seals"]))
-
-            time.sleep(INSPECT_INTERROGATE_TIME)
-            tas.interrogate()
-
-            tas.moveTo(RIGHT_SCAN_SLOT)
-            tas.dragTo(PAPER_SCAN_POS)
-
-            tas.moveTo(LEFT_SCAN_SLOT)
-            tas.dragTo(PAPER_SCAN_POS)
-
-            tas.putRulebookBack()
-            tas.moveTo(PAPER_SCAN_POS)
-            return True
-        
-        if AccessPermit.TAS.APPEARANCE_HEIGHT_CHECK:
-            tas.click(INSPECT_BUTTON)
-            tas.click(onTable(centerOf(AccessPermit.LAYOUT["height"])))
-            tas.click(PERSON_POS)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
-            before = np.asarray(tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
-            msg = bgFilter(before, np.asarray(tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(AccessPermit.TAS.MATCHING_DATA, msg) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                tas.interrogate()
-                tas.moveTo(PAPER_SCAN_POS)
-                return True
-            
-            tas.click(onTable(textFieldOffset(AccessPermit.LAYOUT["description"])))
-            before = np.asarray(tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME)
-            msg = bgFilter(before, np.asarray(tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(AccessPermit.TAS.MATCHING_DATA_LINES, msg, confidence = 0.8) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                tas.interrogate()
-                tas.moveTo(PAPER_SCAN_POS)
-                return True
-
-            tas.click(INSPECT_BUTTON)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
-            tas.moveTo(PAPER_SCAN_POS)
-
-        return False
     
     def __repr__(self) -> str:
         return f"""==- Access Permit -==

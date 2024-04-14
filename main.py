@@ -3,10 +3,11 @@ import logging.config
 import os
 import pathlib
 
-import win32com
+import win32com.client
 import win32gui
 
-from tas import TAS, Run
+from tas import TAS
+from run import Run
 
 logger = logging.getLogger('tas.' + __name__)
 log_config_path = os.path.join(TAS.PROGRAM_DIR, 'config', 'logging_config.json')
@@ -54,7 +55,8 @@ def main():
         act = select("Select action:", ["Run", "Test", "View credits"])
 
         if act in (0, 1):
-            tas.hwnd = tas.getWinHWND()
+            tas.currRun = RUNS[i]
+            tas.hwnd    = tas.getWinHWND()
             shell = win32com.client.Dispatch("WScript.Shell")
             shell.SendKeys('%')
             win32gui.SetForegroundWindow(tas.hwnd)

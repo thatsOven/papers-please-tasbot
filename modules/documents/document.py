@@ -31,22 +31,6 @@ class Document(ABC):
     def parse(docImg: Image.Image) -> Self:
         raise NotImplementedError
     
-    @abstractmethod
-    def checkDiscrepancies(self, tas) -> bool:
-        ...
-
-    @abstractmethod
-    def checkDiscrepanciesWithReason(self, tas) -> bool:
-        ...
-
-    def confiscatePassportWhen(self, tas) -> bool:
-        return False
-    
-    def checkDiscrepanciesInternal(self, tas) -> bool:
-        if tas.date < Document.TAS.DAY_18:
-            return self.checkDiscrepancies(tas)
-        return self.checkDiscrepanciesWithReason(tas)
-
     @staticmethod
     def getBgs(layout: dict[str, tuple], tableOffset: tuple[int, int], innerTexture: Image.Image) -> dict[str, Image.Image]:
         return {key: innerTexture.crop(convertBox(box, tableOffset)) for key, box in layout.items()}

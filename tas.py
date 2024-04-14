@@ -38,7 +38,6 @@
 # - make methods to handle special encounters in different ways
 # - maybe make a simple scripting language for runs
 
-from abc               import ABC, abstractmethod
 from PIL               import ImageGrab, ImageFont, Image
 from pathlib           import Path
 from deskew            import determine_skew
@@ -193,6 +192,8 @@ class TAS:
         self.endingsTime = {}
 
         self.wanted = []
+
+        self.currRun = None
         
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
@@ -443,7 +444,6 @@ class TAS:
         charCheck.MINI_KYLIE = TAS.FONTS["mini-kylie"]
         charCheck._04B03     = TAS.FONTS["04b03"]
 
-        Run.TAS           = TAS
         Passport.TAS      = TAS
         Document.TAS      = TAS
         Transcription.TAS = TAS
@@ -1065,7 +1065,7 @@ class TAS:
             if document.checkMatch(docImg):
                 doc: Document = document.parse(docImg)
 
-                if self.doConfiscate and doc.confiscatePassportWhen(self):
+                if self.doConfiscate and self.currRun.confiscatePassportWhen(doc):
                     self.confiscate = True
 
                 return doc
@@ -1101,7 +1101,7 @@ class TAS:
 
         passport: Passport = Passport.parse(docImg, type_)
 
-        if self.doConfiscate and passport.confiscateWhen(self):
+        if self.doConfiscate and self.currRun.confiscatePassportWhen(doc):
             self.confiscate = True
 
         return passport
@@ -1299,7 +1299,10 @@ class TAS:
             self.moveTo(PAPER_SCAN_POS)
             if self.passportCheck(before, False, denyWhen):
                 return True
-        return False    
+        return False
+    
+    def checkDiscrepancies(self, doc: Document | Passport) -> bool:
+        return getattr(self.currRun, f"check{str(type(doc))}Discrepancies")(doc)
     
     def getAllDocs(self, *, nextCheck: bool = True) -> tuple[bool, bool]:
         if nextCheck:
@@ -1319,17 +1322,17 @@ class TAS:
                 self.documentStack.passport = doc
 
                 if self.needId:
-                    discrepancy |= doc.checkDiscrepanciesInternal(self)
+                    discrepancy |= self.checkDiscrepancies(doc)
                 elif self.passportCheck(
                     self.lastGiveArea, True, 
-                    lambda x: discrepancy or x.checkDiscrepanciesInternal(self)
+                    lambda x: discrepancy or self.checkDiscrepancies(x)
                 ): return False, True
 
                 if np.array_equal(self.lastGiveArea, np.asarray(self.getScreen().crop(GIVE_AREA))): break
 
                 self.documentStack.push(doc)
             else:
-                if (discrepancy and self.needId) or ((not discrepancy) and doc is not None and doc.checkDiscrepanciesInternal(self)):
+                if (discrepancy and self.needId) or ((not discrepancy) and doc is not None and self.checkDiscrepancies(doc)):
                     if type(doc) is ArstotzkanID:
                         self.needId = False
 
@@ -1366,7 +1369,7 @@ class TAS:
 
         self.needId = False
         return False, self.multiDocNoPassport(
-            lambda x: discrepancy or x.checkDiscrepanciesInternal(self), 
+            lambda x: discrepancy or self.checkDiscrepancies(x), 
         )
     
     def noConfiscate(self, fn: Callable):
@@ -1502,7 +1505,7 @@ class TAS:
                 self.waitForGiveAreaChange(update = False)
                 doc = self.docScan()
 
-                discrepancy = doc.checkDiscrepanciesInternal(self)
+                discrepancy = self.checkDiscrepancies(doc)
                 self.moveTo(PAPER_SCAN_POS)
                 self.documentStack.push(doc)
                 if not discrepancy: 
@@ -2067,7 +2070,7 @@ class TAS:
         if self.next(): return False
         passport: Passport = self.docScan()
 
-        cond = passport.checkDiscrepancies(self)
+        cond = self.checkDiscrepancies(passport)
 
         if (cond if wrong else not cond):
             self.moveTo(PAPER_SCAN_POS)
@@ -2256,16 +2259,3 @@ class TAS:
         TAS.DAY4_PICTURE_CHECK = False
         func()
         TAS.DAY4_PICTURE_CHECK = tmp
-
-class Run(ABC):
-    tas: TAS
-
-    @abstractmethod
-    def run(self):
-        ...
-
-    def credits(self):
-        return "No credits"
-
-    def test(self):
-        ...

@@ -1,4 +1,4 @@
-from tas      import Run
+from run      import Run
 from enum     import Enum
 import time, numpy as np
 

@@ -42,12 +42,6 @@ class EntryTicket(Document):
             EntryTicket.INNER_TEXTURE.crop(convertBox(trackBox, EntryTicket.TABLE_OFFSET)),
             EntryTicket.TAS.FONTS["bm-mini"], EntryTicket.TEXT_COLOR
         ))
-    
-    def checkDiscrepancies(self, tas) -> bool:
-        return self.date != tas.date
-    
-    def checkDiscrepanciesWithReason(self, _) -> bool:
-        return True # this never gets called since the entry ticket disappears on day 4
 
     def __init__(self, date):
         self.date: datetime.date = date
