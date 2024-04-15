@@ -1100,7 +1100,7 @@ class TAS:
 
         passport: Passport = Passport.parse(docImg, type_)
 
-        if self.doConfiscate and self.currRun.confiscatePassportWhen(doc):
+        if self.doConfiscate and self.currRun.confiscatePassportWhen(passport):
             self.confiscate = True
 
         return passport
@@ -1301,8 +1301,8 @@ class TAS:
         return False
     
     def checkDiscrepancies(self, doc: Document | Passport) -> bool:
-        return getattr(self.currRun, f"check{str(type(doc))}Discrepancies")(doc)
-    
+        return getattr(self.currRun, f"check{type(doc).__name__}Discrepancies")(doc)
+
     def getAllDocs(self, *, nextCheck: bool = True) -> tuple[bool, bool]:
         if nextCheck:
             if self.next(): return True, False

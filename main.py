@@ -1,17 +1,10 @@
 import json
 import logging.config
 import os
-import sys
-import numpy
-import shutil
 import pathlib
 
 import win32com.client
 import win32gui
-
-from setuptools      import setup
-from Cython.Build    import cythonize
-from Cython.Compiler import Options
 
 logger = logging.getLogger('tas.' + __name__)
 log_config_path = os.path.join(str(pathlib.Path(__file__).parent.absolute()), 'config', 'logging_config.json')
@@ -19,23 +12,22 @@ with open(log_config_path) as f:
     config = json.load(f)
 logging.config.dictConfig(config)
 
-if "--build" not in sys.argv:
-    from tas         import TAS
-    from modules.run import Run
+from tas         import TAS
+from modules.run import Run
 
-    tas = TAS()
+tas = TAS()
 
-    # import all runs
-    for module in os.listdir(pathlib.Path('./runs')):
-        if module.endswith(".py"):
-            __import__(f"runs.{module[:-3]}", locals(), globals())
+# import all runs
+for module in os.listdir(pathlib.Path('./runs')):
+    if module.endswith(".py"):
+        __import__(f"runs.{module[:-3]}", locals(), globals())
 
-    RUNS: list[Run] = []
-    for RunSubclass in Run.__subclasses__():
-        logger.info(f'Initializing Run "{RunSubclass.__name__}"...')
-        inst = RunSubclass()
-        inst.tas = tas
-        RUNS.append(inst)
+RUNS: list[Run] = []
+for RunSubclass in Run.__subclasses__():
+    logger.info(f'Initializing Run "{RunSubclass.__name__}"...')
+    inst = RunSubclass()
+    inst.tas = tas
+    RUNS.append(inst)
 
 def select(msg: str, options: list) -> int:
     while True:
@@ -75,31 +67,4 @@ def main():
             case 2:
                 print(RUNS[i].credits())
 
-def build():
-    Options.annotate = False
-
-    oldArgs = sys.argv
-    sys.argv = [sys.argv[0], "build_ext", "--inplace"]
-
-    file = os.path.abspath(str(pathlib.Path('./modules/textRecognition/source/textRecognition.pyx')))
-    os.chdir(str(pathlib.Path('./modules/textRecognition')))
-    setup(
-        name         = "textRecognition",
-        include_dirs = [numpy.get_include()], 
-        ext_modules  = cythonize(file, compiler_directives = {
-            "language_level": "3"
-        }),
-        zip_safe = False
-    )
-
-    sys.argv = oldArgs
-    
-    file = str(pathlib.Path('./source/textRecognition.c'))
-    if os.path.exists(file): os.remove(file)
-
-    fold = str(pathlib.Path('./build'))
-    if os.path.exists(fold): shutil.rmtree(fold)
-
-if __name__ == '__main__': 
-    if "--build" in sys.argv: build()
-    else:                     main()
+if __name__ == '__main__': main()
