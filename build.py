@@ -69,6 +69,7 @@ def release():
         "source":       "main.py",
         "destination":  "PapersPleaseTAS",
         "display-mode": "console",
+        "icon":         os.path.join("assets", "icon.ico"),
         "copy": {
             "runs":   "folder",
             "assets": "folder",
