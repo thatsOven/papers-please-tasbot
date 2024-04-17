@@ -190,7 +190,7 @@ class GUI:
         if data is None: return None
 
         self.__wait(lambda x: x == "ok")
-        return base64.b64decode(data)
+        return decode(data)
 
     def initBackend(self) -> None:
         self.consolePrint('Initializing backend...')
