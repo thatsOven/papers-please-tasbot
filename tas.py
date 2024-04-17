@@ -28,7 +28,6 @@
 # the date format must be 1982-1-23, and the game must be windowed, in default resolution
 #
 # **TODO**
-# - make gui
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using "next!" bubble
 # - try to implement picture/face recognition and height recognition

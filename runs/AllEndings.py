@@ -19,7 +19,8 @@ class Day31EscapeMode(Enum):
     NO, ALONE, WIFE = range(3)
 
 class AllEndings(Run):
-    def credits(self):
+    @staticmethod
+    def description():
         return "** All Endings speedrun **\nStrategy: HowToCantaloupe\nCode: thatsOven"
 
     DAY_12 = date(1982, 12,  4) 

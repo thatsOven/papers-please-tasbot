@@ -23,6 +23,7 @@ DEPENDENCIES = [
     "win32api",
     "winerror",
     "tas",
+    "backend",
     "modules",
     "packaging",
     "lazy_loader",
@@ -68,7 +69,7 @@ def release():
     ianthe.config = {
         "source":       "main.py",
         "destination":  "PapersPleaseTAS",
-        "display-mode": "console",
+        "display-mode": "windowed",
         "icon":         os.path.join("assets", "icon.ico"),
         "copy": {
             "runs":   "folder",

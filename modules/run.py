@@ -29,8 +29,9 @@ class Run(ABC):
     def run(self) -> None:
         ...
 
-    def credits(self) -> str:
-        return "No credits"
+    @staticmethod
+    def description() -> str:
+        return "No description given"
 
     def test(self) -> None:
         ...
