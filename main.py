@@ -1,5 +1,3 @@
-import json
-import logging.config
 import os
 import sys
 import pathlib
@@ -19,12 +17,6 @@ GET_RUNS_ATTEMPTS   = 5
 
 PROGRAM_DIR = str(pathlib.Path(__file__).parent.absolute())
 FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS")
-
-logger = logging.getLogger('tas.' + __name__)
-log_config_path = os.path.join(PROGRAM_DIR, 'config', 'logging_config.json')
-with open(log_config_path) as f:
-    config = json.load(f)
-logging.config.dictConfig(config)
 
 def encode(msg: str) -> str:
     return base64.b64encode(msg.encode()).decode()
@@ -71,7 +63,6 @@ class GUI:
         self.window.after(0, self.__prepare)
 
     def consolePrint(self, msg: str) -> None:
-        logger.info(msg)
         self.console.config(state = tk.NORMAL)
         self.console.insert(tk.END, "\n" + str(msg))
 
