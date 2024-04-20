@@ -37,7 +37,7 @@ def main() -> None:
         
         match com[0]:
             case "exit":
-                quit()
+                sys.exit(0)
             case "select":
                 curr = int(com[1])
             case "run":

@@ -47,7 +47,7 @@ class GUI:
         self.window.destroy()
         if self.backend is not None:
             self.backend.kill()
-        quit()
+        sys.exit(0)
 
     def __init__(self) -> None:
         self.__running = True
