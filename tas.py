@@ -42,7 +42,7 @@ from deskew            import determine_skew
 from datetime          import date, timedelta
 from skimage.color     import rgb2gray
 from skimage.transform import rotate
-from typing            import Callable, ClassVar
+from typing            import Callable, ClassVar, Type, TYPE_CHECKING
 import win32gui, time, os, math, pyautogui as pg, numpy as np
 
 from modules.constants.delays import *
@@ -71,8 +71,13 @@ import logging
 
 logger = logging.getLogger('tas.' + __name__)
 
+if TYPE_CHECKING:
+    from modules.run import Run
+
 class TAS:
-    DEBUG: ClassVar[bool] = True
+    SETTINGS: ClassVar[dict] = {
+        "debug": True
+    }
 
     DAY3_PICTURE_CHECK: ClassVar[bool]      = False
     DAY4_PICTURE_CHECK: ClassVar[bool]      = True 
@@ -103,8 +108,7 @@ class TAS:
     DAY_28: ClassVar[date] = date(1982, 12, 20) # confiscate all arstotzkan passports
     DAY_29: ClassVar[date] = date(1982, 12, 21) # you can now confiscate and keep obristan passports
 
-    RUNS: ClassVar[list]                               = None
-    DOCUMENTS: ClassVar[list[Document]]                = None
+    DOCUMENTS: ClassVar[list[Type[Document]]]          = None
     MOA_SEALS: ClassVar[tuple[Image.Image, ...]]       = None
     PASSPORT_TYPES: ClassVar[tuple[PassportType, ...]] = None
 
@@ -152,6 +156,7 @@ class TAS:
     weight: int | None
     lastGiveArea: np.ndarray | None
     wanted: list[tuple[int, int]]
+    currRun: "Run"
 
     documentStack: DocumentStack
     transcription: Transcription
@@ -1313,7 +1318,7 @@ class TAS:
         while True:
             self.moveTo(PAPER_POS)
             doc: Document | Passport = self.docScan(move = False)
-            if TAS.DEBUG: logger.info(doc)
+            if TAS.SETTINGS["debug"]: logger.info(doc)
             self.moveTo(PAPER_SCAN_POS)
 
             if type(doc) is Passport:

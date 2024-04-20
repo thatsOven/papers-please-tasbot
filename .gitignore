@@ -1,3 +1,4 @@
 debug.log*
 *__pycache__*
 *.pyd
+settings.json

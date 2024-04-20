@@ -36,6 +36,8 @@ def main() -> None:
         except EOFError: continue
         
         match com[0]:
+            case "exit":
+                quit()
             case "select":
                 curr = int(com[1])
             case "run":
@@ -48,12 +50,14 @@ def main() -> None:
             case "set_dir":
                 directory = decode(com[1])
 
-                log_config_path = os.path.join(directory, 'config', 'logging_config.json')
-                with open(log_config_path) as f:
+                with open(os.path.join(directory, 'config', 'logging_config.json'), 'r', encoding = 'utf-8') as f:
                     config = json.load(f)
                 logging.config.dictConfig(config)
             case "init":
                 tas = TAS()
+            case "load_settings":
+                with open(os.path.join(directory, "config", "settings.json"), "r", encoding = "utf-8") as settings:
+                    tas.SETTINGS = json.load(settings)
             case "runs":
                 match com[1]:
                     case "load":

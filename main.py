@@ -1,8 +1,9 @@
 import os
 import sys
-import pathlib
-import base64
 import time
+import json
+import base64
+import pathlib
 import subprocess
 import tkinter as tk
 from threading import Thread
@@ -10,8 +11,11 @@ from queue     import Queue
 from tkinter   import scrolledtext, messagebox
 from typing    import Literal, Callable, ClassVar, NoReturn
 
+VERSION = "2024.4.20"
+SETTINGS_VERSION = "1"
+
 MAIN_RESOLUTION     = "380x305"
-SETTINGS_RESOLUTION = "500x500"
+SETTINGS_RESOLUTION = "200x100"
 MAX_CONSOLE_LEN     = 131_072
 GET_RUNS_ATTEMPTS   = 5
 
@@ -25,15 +29,17 @@ def decode(msg: str) -> str:
     return base64.b64decode(msg.encode()).decode()
 
 class GUI:
-    ICON: ClassVar[tk.PhotoImage] = None
+    SETTINGS_FILE: ClassVar[str] = os.path.join(PROGRAM_DIR, "config", "settings.json")
 
+    ICON: ClassVar[tk.PhotoImage] = None
+    
     def __setIcon(self, window: tk.Tk) -> None:
         self.window.call(
             "wm", "iconphoto", window._w,
             GUI.ICON
         )
 
-    def __handleExc(self, e, val, tb):
+    def __handleExc(self, e, val, tb) -> None:
         if self.__running: raise e
         
     def cleanup(self) -> NoReturn:
@@ -58,6 +64,11 @@ class GUI:
         self.window.geometry(MAIN_RESOLUTION)
         self.window.resizable(False, False)
         self.window.protocol("WM_DELETE_WINDOW", self.cleanup)
+
+        self.settings = {
+            "version": SETTINGS_VERSION,
+            "debug": True
+        }
 
         self.__buildWindow()
         self.window.after(0, self.__prepare)
@@ -203,6 +214,7 @@ class GUI:
         )
         self.backendCom(f"set_dir {encode(PROGRAM_DIR + os.sep)}")
         self.backendCom("init")
+        self.backendCom("load_settings")
         
     def loadRuns(self) -> None:
         self.consolePrint('Loading runs...')
@@ -222,7 +234,42 @@ class GUI:
         for name, _ in self.runs:
             self.runsList.insert(tk.END, name)
 
+    def __dictUpdateAndCleanup(self, new: dict, old: dict, version: str) -> dict:
+        unused = []
+        for key in new:
+            if key not in old:
+                unused.append(key)
+
+        for key in unused:
+            del new[key]
+
+        for key in old:
+            if key not in new:
+                new[key] = old[key]
+
+        new["version"] = version
+
+        return new
+    
+    def writeSettings(self) -> None:
+        with open(GUI.SETTINGS_FILE, "w", encoding = "utf-8") as settings:
+            json.dump(self.settings, settings)
+
+    def loadSettings(self) -> None:
+        if os.path.exists(GUI.SETTINGS_FILE):
+            with open(GUI.SETTINGS_FILE, "r", encoding = "utf-8") as settings:
+                tmpSettings = json.load(settings)
+
+            if tmpSettings["version"] != SETTINGS_VERSION:
+                self.settings = self.__dictUpdateAndCleanup(tmpSettings, self.settings, SETTINGS_VERSION)
+                self.writeSettings()
+            else:
+                self.settings = tmpSettings
+        else:
+            self.writeSettings()
+
     def __prepare(self) -> None:
+        self.loadSettings()
         self.initBackend()
         self.loadRuns()
         self.__ready()
@@ -272,7 +319,7 @@ class GUI:
         self.testButton = tk.Button(master = self.leftFrame, text = "Test", state = tk.DISABLED, command = self.__selectedRunAct('test'))
         self.testButton.pack(fill = tk.X)
 
-        self.settingsButton = tk.Button(master = self.leftFrame, text = "Settings", state = tk.DISABLED, command = None) # TODO
+        self.settingsButton = tk.Button(master = self.leftFrame, text = "Settings", state = tk.DISABLED, command = self.__settingsWindow)
         self.settingsButton.pack(fill = tk.X)
 
         self.rightFrame = tk.Frame(master = self.window)
@@ -290,6 +337,62 @@ class GUI:
 
         self.leftFrame.pack(side = tk.LEFT, fill = tk.Y, expand = True)
         self.rightFrame.pack(side = tk.RIGHT, fill = tk.Y, expand = True)
+
+    def __centerWindow(self, window):
+        self.window.update_idletasks()
+        window.update_idletasks()
+        posX, posY = (self.window.winfo_x() + self.window.winfo_width()  // 2 - window.winfo_width()  // 2, 
+                      self.window.winfo_y() + self.window.winfo_height() // 2 - window.winfo_height() // 2)
+        window.geometry(f"+{posX}+{posY}")
+
+    def __settingsWindow(self):
+        settingsWin = tk.Toplevel(master = self.window)
+        self.__setIcon(settingsWin)
+        settingsWin.grab_set()
+        settingsWin.title("Settings")
+        settingsWin.geometry(SETTINGS_RESOLUTION)
+        self.__centerWindow(settingsWin)
+        settingsWin.resizable(False, False)
+
+        self.debugSet = tk.BooleanVar(value = self.settings["debug"])
+        debugCheckbox = tk.Checkbutton(
+            master = settingsWin, text = "Debug", 
+            variable = self.debugSet
+        )
+        debugCheckbox.pack()
+
+        def restartBackend():
+            self.backendCom("exit")
+            self.initBackend()
+            self.loadRuns()
+
+            messagebox.showinfo(title = "Done", message = "Backend was restarted.")
+
+        restartBackendButton = tk.Button(master = settingsWin, text = "Restart backend", command = restartBackend)
+        restartBackendButton.pack()
+
+        buttonFrame = tk.Frame(master = settingsWin)
+
+        def onSave():
+            write = False
+
+            if self.debugSet.get() != self.settings["debug"]:
+                self.settings["debug"] = self.debugSet.get()
+                write = True
+
+            if write:
+                self.consolePrint("Writing settings file...")
+                self.writeSettings()
+                self.backendCom("load_settings")
+
+            settingsWin.destroy()
+
+        saveButton = tk.Button(master = buttonFrame, text = "Save", command = onSave)
+        saveButton.pack(side = tk.RIGHT)
+
+        tk.Label(master = buttonFrame, text = "v" + VERSION).pack(side = tk.LEFT)
+
+        buttonFrame.pack(side = tk.BOTTOM, fill = tk.X)
 
     def run(self, runIdx: int, method: Literal['run', 'test']) -> None:
         self.__disable()

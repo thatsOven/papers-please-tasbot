@@ -286,7 +286,7 @@ class Transcription:
         self.conversation = [self.__parseTextbox(box) for box in self.__getTextBoxes(pages)]
         self.__analyze(self.conversation)
 
-        if Transcription.TAS.DEBUG:
+        if Transcription.TAS.SETTINGS["debug"]:
             for line in self.conversation:
                 logger.info(line)
 
