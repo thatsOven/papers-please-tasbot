@@ -4,6 +4,7 @@ import time
 import json
 import base64
 import pathlib
+import traceback
 import subprocess
 import tkinter as tk
 from threading import Thread
@@ -252,19 +253,31 @@ class GUI:
         return new
     
     def writeSettings(self) -> None:
-        with open(GUI.SETTINGS_FILE, "w", encoding = "utf-8") as settings:
-            json.dump(self.settings, settings)
+        try:
+            with open(GUI.SETTINGS_FILE, "w", encoding = "utf-8") as settings:
+                json.dump(self.settings, settings)
+        except Exception:
+            messagebox.showerror(
+                title = "Unable to write settings", 
+                message = "Unable to write settings. Error:\n" + traceback.format_exc()
+            )
 
     def loadSettings(self) -> None:
         if os.path.exists(GUI.SETTINGS_FILE):
-            with open(GUI.SETTINGS_FILE, "r", encoding = "utf-8") as settings:
-                tmpSettings = json.load(settings)
+            try:
+                with open(GUI.SETTINGS_FILE, "r", encoding = "utf-8") as settings:
+                    tmpSettings = json.load(settings)
 
-            if tmpSettings["version"] != SETTINGS_VERSION:
-                self.settings = self.__dictUpdateAndCleanup(tmpSettings, self.settings, SETTINGS_VERSION)
-                self.writeSettings()
-            else:
-                self.settings = tmpSettings
+                if tmpSettings["version"] != SETTINGS_VERSION:
+                    self.settings = self.__dictUpdateAndCleanup(tmpSettings, self.settings, SETTINGS_VERSION)
+                    self.writeSettings()
+                else:
+                    self.settings = tmpSettings
+            except Exception:
+                messagebox.showerror(
+                    title = "Unable to read settings", 
+                    message = "Unable to read settings. Error:\n" + traceback.format_exc()
+                )
         else:
             self.writeSettings()
 
