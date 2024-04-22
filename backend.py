@@ -3,8 +3,12 @@ import logging.config
 import os
 import sys
 import traceback
-import win32com.client
-import win32gui
+import platform
+
+WINDOWS = platform.system() == "Windows"
+if WINDOWS:
+    import win32com.client
+    import win32gui
 
 FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS")
 
@@ -30,12 +34,18 @@ class Backend:
         self.currRun: int    = None
         self.runs: list[Run] = None
 
-    def run(self, method: RunMethod) -> None:
-        self.tas.currRun = self.runs[self.currRun]
-        self.tas.hwnd    = self.tas.getWinHWND()
-        win32com.client.Dispatch("WScript.Shell").SendKeys('%')
-        win32gui.SetForegroundWindow(self.tas.hwnd)
-        getattr(self.tas.currRun, 'run' if method == RunMethod.RUN else 'test')()
+    if WINDOWS:
+        def run(self, method: RunMethod) -> None:
+            self.tas.currRun = self.runs[self.currRun]
+            self.tas.hwnd    = self.tas.getWinHWND()
+            win32com.client.Dispatch("WScript.Shell").SendKeys('%')
+            win32gui.SetForegroundWindow(self.tas.hwnd)
+            getattr(self.tas.currRun, 'run' if method == RunMethod.RUN else 'test')()
+    else:
+        def run(self, method: RunMethod) -> None:
+            self.tas.currRun = self.runs[self.currRun]
+            self.tas.winPos  = self.tas.getWinPos()
+            getattr(self.tas.currRun, 'run' if method == RunMethod.RUN else 'test')()
 
     def select(self, idx: int) -> None:
         self.currRun = idx
@@ -94,7 +104,7 @@ class Backend:
                     if runsCom != RunsCommand.GET:
                         self.ok()
                 case _:
-                    sendCom(self.__sock, BackendMessage.EXCEPTION, b'Unknown command')
+                    sendCom(self.__sock, BackendMessage.EXCEPTION, f'Unknown command "{com}"'.encode())
                 
     def main(self) -> None:
         try:

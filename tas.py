@@ -20,21 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# **NOTE**
-# *IMPORTANT*: the only tested version is 1.1.67-S. 
-#              this bot will currently NOT work for the latest version of the game.
-# 
-# for the bot to work, the game language has to be english, 
-# the date format must be 1982-1-23, and the game must be windowed, in default resolution
-#
 # **TODO**
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using "next!" bubble
 # - try to implement picture/face recognition and height recognition
 # - figure out occasional parsing errors in transcription and text recognition rare bugs
-# - linux compatibility(?)
 # - make methods to handle special encounters in different ways
 # - maybe make a simple scripting language for runs
+# - ~~linux compatibility~~ (technically done but not quite. also not tested)
 
 from PIL               import ImageGrab, ImageFont, Image
 from pathlib           import Path
@@ -43,7 +36,7 @@ from datetime          import date, timedelta
 from skimage.color     import rgb2gray
 from skimage.transform import rotate
 from typing            import Callable, ClassVar, Type, TYPE_CHECKING
-import win32gui, time, os, math, pyautogui as pg, numpy as np
+import platform, time, os, math, pyautogui as pg, numpy as np
 
 from modules.constants.delays import *
 from modules.constants.screen import *
@@ -70,6 +63,10 @@ from modules.documents.passport       import (
 import logging
 
 logger = logging.getLogger('tas.' + __name__)
+
+WINDOWS = platform.system() == "Windows"
+if WINDOWS:
+    import win32gui
 
 if TYPE_CHECKING:
     from modules.run import Run
@@ -132,6 +129,7 @@ class TAS:
     TICKS: ClassVar[dict[str, Image.Image]]      = None
     GIVE_BANNER: ClassVar[Image.Image]           = None
     PASSPORT_KORDON_KALLO: ClassVar[Image.Image] = None
+    CLOSE_BUTTON: ClassVar[Image.Image]          = None
 
     SEX_F_GENERIC: ClassVar[np.ndarray]  = None
     SEX_M_OBRISTAN: ClassVar[np.ndarray] = None
@@ -164,7 +162,9 @@ class TAS:
     def __init__(self):
         pg.useImageNotFoundException(False)
         pg.PAUSE = 0.05
-        self.hwnd = None
+
+        if WINDOWS: self.hwnd   = None
+        else:       self.winPos = None
 
         self.checkHorn = False
 
@@ -262,6 +262,9 @@ class TAS:
         ).convert("RGB")
         TAS.PASSPORT_KORDON_KALLO = Image.open(
             os.path.join(TAS.ASSETS, "passportKordonKallo.png")
+        ).convert("RGB")
+        TAS.CLOSE_BUTTON = Image.open(
+            os.path.join(TAS.ASSETS, "closeButton.png")
         ).convert("RGB")
 
         sealsPath = os.path.join(TAS.ASSETS, "sealsMOA")
@@ -460,40 +463,64 @@ class TAS:
         logger.info("TASBOT initialized!")
 
     @staticmethod
-    def getWinHWND() -> str:
-        """Get the Windows handle for a currently open Papers Please window.
+    def getWinPos() -> tuple[int, int]:
+        pos = pg.locateOnScreen(TAS.CLOSE_BUTTON)
+        if pos is None:
+            raise TASException("Unable to get window position")
+        return offsetPoint(tuple(pos), (-CLOSE_BUTTON_OFFSET[0], -CLOSE_BUTTON_OFFSET[1]))
 
-        Returns:
-            Handle for the Papers Please window.
+    if WINDOWS:
+        @staticmethod
+        def getWinHWND() -> str:
+            """Get the Windows handle for a currently open Papers Please window.
 
-        Raises:
-            TASException: If no matching window exists.
-        """
-        topList = []
-        winList = []
-        win32gui.EnumWindows(
-            lambda h, _: winList.append((h, win32gui.GetWindowText(h))),
-            topList
-        )
+            Returns:
+                Handle for the Papers Please window.
 
-        for h, t, in winList:
-            if t in ("Papers Please", "PapersPlease"):
-                return h
-            
-        raise TASException('No "Papers Please" window was found')
+            Raises:
+                TASException: If no matching window exists.
+            """
+            topList = []
+            winList = []
+            win32gui.EnumWindows(
+                lambda h, _: winList.append((h, win32gui.GetWindowText(h))),
+                topList
+            )
 
-    def getScreen(self) -> Image.Image:
-        """Get a screenshot of the window in its current state.
+            for h, t, in winList:
+                if t in ("Papers Please", "PapersPlease"):
+                    return h
+                
+            raise TASException('No "Papers Please" window was found')
+        
+        def getScreen(self) -> Image.Image:
+            """Get a screenshot of the window in its current state.
 
-        Returns:
-            Screenshot of the window as an Image in RGB format.
-        """
-        return ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB")
-    
-    def mouseOffset(self, x: int, y: int) -> tuple[int, int]:
-        """Converts point from window coordinates to screen coordinates."""
-        bX, bY, _, _ = win32gui.GetWindowRect(self.hwnd)
-        return (bX + x, bY + y)        
+            Returns:
+                Screenshot of the window as an Image in RGB format.
+            """
+            return ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB")
+        
+        def mouseOffset(self, x: int, y: int) -> tuple[int, int]:
+            """Converts point from window coordinates to screen coordinates."""
+            bX, bY, _, _ = win32gui.GetWindowRect(self.hwnd)
+            return (bX + x, bY + y)       
+    else:
+        @staticmethod
+        def getWinHWND() -> str:
+            raise NotImplementedError
+        
+        def getScreen(self) -> Image.Image:
+            """Get a screenshot of the window in its current state.
+
+            Returns:
+                Screenshot of the window as an Image in RGB format.
+            """
+            return ImageGrab.grab(self.winPos + offsetPoint(WINDOW_SIZE, self.winPos)).convert("RGB")
+        
+        def mouseOffset(self, x: int, y: int) -> tuple[int, int]:
+            """Converts point from window coordinates to screen coordinates."""
+            return offsetPoint((x, y), self.winPos)
 
     def moveTo(self, at: tuple[int, int]) -> None:
         """Moves mouse to point given in window coordinates."""

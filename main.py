@@ -389,7 +389,7 @@ class GUI:
                 messagebox.showwarning(title = "No run selected", message = "Select a run first")
                 return
             
-            self.consolePrint(f"{word} {self.runsList.get(runIdx)[0]}...")
+            self.consolePrint(f"{word} {self.runsList.get(runIdx)}...")
             self.run(runIdx[0], method)
 
         return fn
