@@ -1554,19 +1554,7 @@ class TAS:
         self.click(pg.center(pg.locate(TAS.BULLETS, self.getScreen())))
 
     def detectPeople(self, area: tuple[int, int, int, int], *, tranq: bool = False) -> tuple[tuple[int, int], ...]:
-        people = self.getScreen().crop(area)
-        testImg = people.copy()
-        testImg.paste(PEOPLE_COLOR, (0, 0) + testImg.size)
-        filter = people.copy()
-        filter.paste((0, 0, 0), (0, 0) + filter.size)
-
-        people  = np.asarray(people).copy()
-        testImg = np.asarray(testImg)
-        filter  = np.asarray(filter)
-
-        np.copyto(people, filter, where = people != testImg)
-
-        ys, xs, _ = people.nonzero()
+        ys, xs = np.where((np.asarray(self.getScreen().crop(area)) == PEOPLE_COLOR).all(axis = -1))
         if tranq:
             return (
                 offsetPoint((xs[0           ], ys[0           ]), area[:2]), 

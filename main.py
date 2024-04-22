@@ -2,33 +2,30 @@ import os
 import sys
 import time
 import json
-import base64
 import pathlib
 import traceback
 import subprocess
 import tkinter as tk
-from threading import Thread
-from queue     import Queue
-from tkinter   import scrolledtext, messagebox
-from typing    import Literal, Callable, ClassVar, NoReturn
+from collections import deque
+from threading   import Thread, Lock
+from tkinter     import scrolledtext, messagebox
+from typing      import Callable, ClassVar, NoReturn
 
-VERSION = "2024.4.20"
+from modules.sockets import *
+
+VERSION = "2024.4.22"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"
 SETTINGS_RESOLUTION = "200x100"
 MAX_CONSOLE_LEN     = 131_072
+GUI_FRAMERATE       = 20
+FRAME_SLEEP         = 1 / GUI_FRAMERATE
 GET_RUNS_ATTEMPTS   = 5
 
 PROGRAM_DIR = str(pathlib.Path(__file__).parent.absolute())
 FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS")
-
-def encode(msg: str) -> str:
-    return base64.b64encode(msg.encode()).decode()
-
-def decode(msg: str) -> str:
-    return base64.b64decode(msg.encode()).decode()
-
+    
 class GUI:
     SETTINGS_FILE: ClassVar[str] = os.path.join(PROGRAM_DIR, "config", "settings.json")
 
@@ -41,7 +38,7 @@ class GUI:
         )
 
     def __handleExc(self, e, val, tb) -> None:
-        if self.__running: raise e
+        if self.__running: raise type(e)() from e
         
     def cleanup(self) -> NoReturn:
         self.__running = False
@@ -96,134 +93,98 @@ class GUI:
         self.testButton.config(state = tk.DISABLED)
         self.settingsButton.config(state = tk.DISABLED)
 
-    def __wait(self, cond: Callable[[str], bool]) -> str | None:
-        q = Queue()
+    def updateConsole(self) -> None:
+        with self.__queueLock:
+            while len(self.__consoleQueue) != 0:
+                self.consolePrint(self.__consoleQueue.popleft())
+        self.window.update()
+
+    def __receive(self) -> tuple[BackendMessage, bytes | None] | None:
         waiting = True
+        data: tuple[BackendMessage, bytes | None] = None
 
-        def fn():
-            nonlocal waiting
-
-            def stdout():
-                while waiting:
-                    line = self.backend.stdout.readline()
-
-                    if line and type(line) is bytes:
-                        try:
-                            line = line.decode('utf-8')
-                        except UnicodeDecodeError: pass
-                        else:
-                            q.put(("stdout", line.strip()))
-
-            t = Thread(target = stdout)
-            t.start()
-
-            while self.backend.poll() is None:
-                line = self.backend.stderr.readline()
-
-                if line and type(line) is bytes:
-                    try:
-                        line = line.decode('utf-8')
-                    except UnicodeDecodeError: pass
-                    else:
-                        stripped = line.strip()
-                        splitted = stripped.split()
-
-                        panic = splitted[0] == "panic"
-                        if panic or splitted[0] == "exc":
-                            if panic:
-                                title = "Backend crashed!"
-
-                                q.put(("exec", "killBackend"))
-                                q.put(("exec", "initBackend"))
-                                q.put(("exec", "loadRuns"))
-                            else:
-                                title = "Exception from backend"
-
-                            q.put(("popup", {
-                                "title": title,
-                                "type": "error",
-                                "body": decode(splitted[1])
-                            }))
-
-                            q.put(("ret", None))
-                            break
-
-                        if cond(stripped): 
-                            q.put(("ret", stripped))
-                            break
-                                
+        def receive():
+            nonlocal waiting, data
+            data    = recvCom(self.__backendSock, BackendMessage)
             waiting = False
-            t.join()
 
-        t = Thread(target = fn)
+        t = Thread(target = receive)
         t.start()
 
         while waiting:
-            time.sleep(0.1)
-            while not q.empty():
-                com = q.get()
-
-                match com[0]:
-                    case "stdout":
-                        self.consolePrint(com[1])
-                    case "exec":
-                        getattr(self, com[1])()
-                    case "popup":
-                        settings = com[1]
-                        match settings["type"]:
-                            case "error":
-                                messagebox.showerror(settings["title"], settings["body"])
-                            case "warn":
-                                messagebox.showwarning(settings["title"], settings["body"])
-                            case "info":
-                                messagebox.showinfo(settings["title"], settings["body"])
-                    case "ret":
-                        return com[1]
-                    
-                self.window.update()
-            self.window.update()
+            self.updateConsole()
+            time.sleep(FRAME_SLEEP)
 
         t.join()
 
-    def killBackend(self) -> None:
-        if self.backend.poll() is not None:
-            self.backend.kill()
+        if data is None:
+            messagebox.showerror(
+                title   = "Unable to receive data",
+                message = "The backend connection was closed abruptly"
+            )
+            return None
+        
+        com, args = data
 
-    def backendCom(self, com: str) -> None:
-        self.backend.stdin.write((com + '\n').encode())
-        self.backend.stdin.flush()
-        self.__wait(lambda x: x == "ok")
+        if com in (BackendMessage.EXCEPTION, BackendMessage.PANIC):
+            exc = com == BackendMessage.EXCEPTION
+            messagebox.showerror(
+                title   = "Exception from backend" if exc else "Backend crashed!",
+                message = args.decode()
+            )
 
-    def backendDataCom(self, com: str) -> str:
-        self.backend.stdin.write((com + '\n').encode())
-        self.backend.stdin.flush()
-        self.__wait(lambda x: x == "data")
-        data = self.__wait(lambda _: True)
-        if data is None: return None
+            if not exc:
+                self.initBackend()
+                self.loadRuns()
+        
+        return data
 
-        self.__wait(lambda x: x == "ok")
-        return decode(data)
+    def backendCom(self, com: FrontendMessage, args: bytes | None = None) -> bytes | None:
+        sendCom(self.__backendSock, com, args)
+        data = self.__receive()
+        if not data: return None
+        return data[1]
+    
+    def __stdoutReader(self) -> None:
+        while self.backend.poll() is None:
+            line = self.backend.stdout.readline()
+
+            if line and type(line) is bytes:
+                try:
+                    line = line.decode('utf-8')
+                except UnicodeDecodeError: pass
+                else:
+                    with self.__queueLock:
+                        self.__consoleQueue.append(line.strip())
 
     def initBackend(self) -> None:
         self.consolePrint('Initializing backend...')
 
+        self.__sock.listen()
+
         self.backend = subprocess.Popen(
-            [sys.executable, "--backend"] if FROZEN else
-            [sys.executable, os.path.join(PROGRAM_DIR, "backend.py")], 
-            stdin = subprocess.PIPE, stdout = subprocess.PIPE, stderr = subprocess.PIPE,
-            creationflags = subprocess.CREATE_NO_WINDOW
+            (
+                [sys.executable, "--backend"] if FROZEN else
+                [sys.executable, os.path.join(PROGRAM_DIR, "backend.py")]
+            ) + ["--frontend-port", str(self.__sock.getsockname()[1]), "--dir", encode(PROGRAM_DIR + os.sep)], 
+            stdout = subprocess.PIPE,
         )
-        self.backendCom(f"set_dir {encode(PROGRAM_DIR + os.sep)}")
-        self.backendCom("init")
-        self.backendCom("load_settings")
+
+        self.__backendSock = self.__sock.accept()[0]
+
+        self.__queueLock    = Lock()
+        self.__stdoutThread = Thread(target = self.__stdoutReader, daemon = True)
+        self.__stdoutThread.start()
+
+        self.backendCom(FrontendMessage.LOAD_SETTINGS)
         
     def loadRuns(self) -> None:
         self.consolePrint('Loading runs...')
 
-        self.backendCom("runs load")
+        self.backendCom(FrontendMessage.RUNS, RunsCommand.LOAD.value.to_bytes())
 
         for _ in range(GET_RUNS_ATTEMPTS):
-            data = self.backendDataCom("runs get")
+            data = self.backendCom(FrontendMessage.RUNS, RunsCommand.GET.value.to_bytes())
             if data is not None: break
         else:
             messagebox.showerror("Error", f"Unable to get runs from backend after {GET_RUNS_ATTEMPTS} attempts. Closing")
@@ -283,6 +244,11 @@ class GUI:
 
     def __prepare(self) -> None:
         self.loadSettings()
+
+        self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.__sock.bind(("localhost", 0))
+        self.__consoleQueue = deque()
+
         self.initBackend()
         self.loadRuns()
         self.__ready()
@@ -326,10 +292,10 @@ class GUI:
 
         self.runsFrame.pack(ipady = 20)
 
-        self.runButton = tk.Button(master = self.leftFrame, text = "Run", state = tk.DISABLED, command = self.__selectedRunAct('run'))
+        self.runButton = tk.Button(master = self.leftFrame, text = "Run", state = tk.DISABLED, command = self.__selectedRunAct(RunMethod.RUN, "Running"))
         self.runButton.pack(fill = tk.X)
 
-        self.testButton = tk.Button(master = self.leftFrame, text = "Test", state = tk.DISABLED, command = self.__selectedRunAct('test'))
+        self.testButton = tk.Button(master = self.leftFrame, text = "Test", state = tk.DISABLED, command = self.__selectedRunAct(RunMethod.TEST, "Testing"))
         self.testButton.pack(fill = tk.X)
 
         self.settingsButton = tk.Button(master = self.leftFrame, text = "Settings", state = tk.DISABLED, command = self.__settingsWindow)
@@ -375,7 +341,7 @@ class GUI:
         debugCheckbox.pack()
 
         def restartBackend():
-            self.backendCom("exit")
+            self.backendCom(FrontendMessage.EXIT)
             self.initBackend()
             self.loadRuns()
 
@@ -396,7 +362,7 @@ class GUI:
             if write:
                 self.consolePrint("Writing settings file...")
                 self.writeSettings()
-                self.backendCom("load_settings")
+                self.backendCom(FrontendMessage.LOAD_SETTINGS)
 
             settingsWin.destroy()
 
@@ -407,22 +373,23 @@ class GUI:
 
         buttonFrame.pack(side = tk.BOTTOM, fill = tk.X)
 
-    def run(self, runIdx: int, method: Literal['run', 'test']) -> None:
+    def run(self, runIdx: int, method: RunMethod) -> None:
         self.__disable()
         
-        self.backendCom(f"select {runIdx}")
-        self.backendCom(f"run {method}")
-        self.__wait(lambda x: x == "ok")
+        self.backendCom(FrontendMessage.SELECT, runIdx.to_bytes())
+        self.backendCom(FrontendMessage.RUN, method.value.to_bytes())
+        self.__receive() # waits for run to complete
 
         self.__ready()
     
-    def __selectedRunAct(self, method: Literal['run', 'test']) -> Callable[[], None]:
+    def __selectedRunAct(self, method: RunMethod, word: str) -> Callable[[], None]:
         def fn():
             runIdx = self.runsList.curselection()
             if len(runIdx) == 0:
                 messagebox.showwarning(title = "No run selected", message = "Select a run first")
                 return
             
+            self.consolePrint(f"{word} {self.runsList.get(runIdx)[0]}...")
             self.run(runIdx[0], method)
 
         return fn
@@ -435,4 +402,5 @@ if __name__ == "__main__":
             gui = GUI()
             tk.mainloop()
         except Exception:
+            print(traceback.format_exc())
             gui.cleanup()
