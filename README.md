@@ -18,6 +18,8 @@ NOTE: For the bot to properly work:
 - The game must be windowed;
 - The window must be default resolution;
 - The window must not be too close to the sides of the screen (~30-40px at most);
-- If not running on Windows, every run should be started from the main menu screen, with every part of the window clearly visible.
+- If not running on Windows:
+    - Every run should be started from the main menu screen, with every part of the window clearly visible;
+    - The window cannot be moved from the position it was when the run was started.
 
 This bot is currently only tested for Papers Please v1.1.67-S. it will NOT work for the latest version of the game.
