@@ -1,11 +1,16 @@
+from typing import TYPE_CHECKING
+
 from modules.documents.document import Document
 from modules.documents.passport import Passport
 from modules.constants.screen   import *
 
+if TYPE_CHECKING:
+    from tas import TAS
+
 class TASException(Exception): ...
 
 class DocumentStack:
-    def __init__(self, tas):
+    def __init__(self, tas: "TAS"):
         self.passport = None
         self.moved    = False
         self.__array  = []

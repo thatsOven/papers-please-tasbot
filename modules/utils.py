@@ -1,3 +1,4 @@
+from enum      import Enum
 from typing    import Self
 from functools import total_ordering
 from datetime  import date, timedelta
@@ -47,6 +48,11 @@ def arrayEQWithTol(a: np.ndarray, b: np.ndarray, tol: int) -> bool:
     diff = a - b
     diff[diff >= 255 - tol] = 0
     return (diff <= tol).all()
+
+class Sex(Enum):
+    # as much as i don't like this, the game has two of these :c
+    # so i'm using booleans cause cleaner/faster code
+    M, F = False, True 
 
 @total_ordering
 class Name:

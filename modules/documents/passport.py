@@ -1,7 +1,7 @@
 from PIL    import Image
 from enum   import Enum
 from typing import Self
-import time, os, numpy as np, pyautogui as pg
+import os, numpy as np
 
 from modules.constants.screen   import *
 from modules.constants.delays   import *
@@ -44,11 +44,6 @@ class Nation(Enum):
     ANTEGRIA, ARSTOTZKA, IMPOR, KOLECHIA, OBRISTAN, REPUBLIA, UNITEDFED = (
         "ANTEGRIA", "ARSTOTZKA", "IMPOR", "KOLECHIA", "OBRISTAN", "REPUBLIA", "UNITEDFED"
     )
-
-class Sex(Enum):
-    # as much as i don't like this, the game has two of these :c
-    # so i'm using booleans cause cleaner/faster code
-    M, F = False, True 
     
 class PassportData:
     def __init__(

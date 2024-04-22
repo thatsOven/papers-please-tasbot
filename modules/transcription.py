@@ -1,5 +1,6 @@
-from PIL   import Image
-from enum  import Enum
+from PIL    import Image
+from enum   import Enum
+from typing import TYPE_CHECKING
 import os, pyautogui as pg, numpy as np
 
 from modules.constants.screen   import *
@@ -12,6 +13,8 @@ import logging
 
 logger = logging.getLogger('tas.' + __name__)
 
+if TYPE_CHECKING:
+    from tas import TAS
 
 class Who(Enum):
     INSPECTOR, ENTRANT = "INSPECTOR", "ENTRANT"
@@ -54,7 +57,7 @@ class Transcription:
             os.path.join(Transcription.TAS.ASSETS, "transcription", "back.png")
         ).convert("RGB")
 
-    def __init__(self, tas):
+    def __init__(self, tas: "TAS"):
         self.conversation: list[Message] = []
         self.__purpose    = AnalyzeData()
         self.__duration   = AnalyzeData()
