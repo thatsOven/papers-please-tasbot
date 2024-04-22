@@ -38,13 +38,16 @@ class GUI:
         )
 
     def __handleExc(self, e, val, tb) -> None:
-        if self.__running: raise type(e)() from e
+        if self.__running: raise e
         
-    def cleanup(self) -> NoReturn:
+    def cleanup(self) -> None:
         self.__running = False
         self.window.destroy()
         if self.backend is not None:
             self.backend.kill()
+    
+    def __cleanup(self) -> NoReturn:
+        self.cleanup()
         sys.exit(0)
 
     def __init__(self) -> None:
@@ -61,7 +64,7 @@ class GUI:
         self.window.title("Papers Please TASbot")
         self.window.geometry(MAIN_RESOLUTION)
         self.window.resizable(False, False)
-        self.window.protocol("WM_DELETE_WINDOW", self.cleanup)
+        self.window.protocol("WM_DELETE_WINDOW", self.__cleanup)
 
         self.settings = {
             "version": SETTINGS_VERSION,
@@ -159,7 +162,7 @@ class GUI:
 
     def initBackend(self) -> None:
         self.consolePrint('Initializing backend...')
-
+        
         self.__sock.listen()
 
         self.backend = subprocess.Popen(
@@ -167,7 +170,7 @@ class GUI:
                 [sys.executable, "--backend"] if FROZEN else
                 [sys.executable, os.path.join(PROGRAM_DIR, "backend.py")]
             ) + ["--frontend-port", str(self.__sock.getsockname()[1]), "--dir", encode(PROGRAM_DIR + os.sep)], 
-            stdout = subprocess.PIPE,
+            stdout = subprocess.PIPE
         )
 
         self.__backendSock = self.__sock.accept()[0]
@@ -398,9 +401,10 @@ if __name__ == "__main__":
     if "--backend" in sys.argv:
         import backend
     else:
+        gui = None
         try:
             gui = GUI()
             tk.mainloop()
-        except Exception:
-            print(traceback.format_exc())
-            gui.cleanup()
+        except Exception as e:
+            if gui is not None: gui.cleanup()
+            raise e
