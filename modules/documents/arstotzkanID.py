@@ -2,7 +2,7 @@ from PIL      import Image
 from enum     import Enum
 from typing   import Self
 from datetime import date
-import time, os, numpy as np, pyautogui as pg
+import os, numpy as np
 
 from modules.constants.screen   import *
 from modules.constants.delays   import *

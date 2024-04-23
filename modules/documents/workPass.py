@@ -2,7 +2,7 @@ from PIL      import Image
 from enum     import Enum
 from typing   import Self
 from datetime import date
-import os, time, numpy as np
+import os, numpy as np
 
 from modules.constants.other    import *
 from modules.constants.screen   import *

@@ -2,8 +2,7 @@ from PIL      import Image
 from enum     import Enum
 from typing   import Self
 from datetime import date
-from dateutil.relativedelta import relativedelta
-import os, time, numpy as np
+import os, numpy as np
 
 from modules.constants.screen   import *
 from modules.constants.delays   import *

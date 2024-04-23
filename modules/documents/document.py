@@ -1,4 +1,4 @@
-from abc    import ABC, abstractmethod
+from abc    import ABC
 from PIL    import Image
 from typing import Self
 import numpy as np, pyautogui as pg

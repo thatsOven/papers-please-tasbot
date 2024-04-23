@@ -1,7 +1,7 @@
 from PIL      import Image
 from typing   import Self
 from datetime import date
-import os, time, numpy as np
+import os, numpy as np
 
 from modules.constants.screen   import *
 from modules.constants.delays   import *

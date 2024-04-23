@@ -1,6 +1,6 @@
 from PIL    import Image
 from typing import Self
-import os, datetime, numpy as np, pyautogui as pg
+import os, datetime, pyautogui as pg, numpy as np
 
 from modules.documents.document import Document, getBox, convertBox
 from modules.textRecognition    import parseDate
