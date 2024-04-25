@@ -90,21 +90,25 @@ class AccessPermit(Document):
                 docImg.crop(AccessPermit.LAYOUT["expiration"]), AccessPermit.BACKGROUNDS["expiration"],
                 AccessPermit.TAS.FONTS["bm-mini"], AccessPermit.TEXT_COLOR
             ),
-            description = docImg.crop(AccessPermit.LAYOUT["description"]),
-            sealArea    = docImg.crop(AccessPermit.LAYOUT["seal-area"])
+            description = Description(parseText(
+                docImg.crop(AccessPermit.LAYOUT["description"]), AccessPermit.BACKGROUNDS["description"],
+                AccessPermit.TAS.FONTS["bm-mini"], AccessPermit.TEXT_COLOR,
+                endAt = "  "
+            )),
+            sealArea = docImg.crop(AccessPermit.LAYOUT["seal-area"])
         )
     
     def __init__(self, name, nation, number, purpose, duration, height, weight, description, expiration, sealArea):
-        self.name: Name            = name
-        self.nation: Nation        = nation
-        self.number                = number
-        self.purpose: Purpose      = purpose
-        self.duration: date        = duration
-        self.height                = height
-        self.weight                = weight
-        self.description           = description
-        self.expiration: date      = expiration
-        self.sealArea: Image.Image = sealArea
+        self.name: Name               = name
+        self.nation: Nation           = nation
+        self.number                   = number
+        self.purpose: Purpose         = purpose
+        self.duration: date           = duration
+        self.height                   = height
+        self.weight                   = weight
+        self.description: Description = description
+        self.expiration: date         = expiration
+        self.sealArea: Image.Image    = sealArea
 
     def checkForgery(self) -> bool:        
         return all(Document.checkNoSeal(
