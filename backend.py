@@ -68,6 +68,8 @@ class Backend:
                     inst = RunSubclass()
                     inst.tas = self.tas
                     self.runs.append(inst)
+                    
+                self.ok()
             case RunsCommand.GET:
                 sendCom(
                     self.__sock, BackendMessage.DATA, 
@@ -100,9 +102,7 @@ class Backend:
                     self.ok()
                 case FrontendMessage.RUNS:
                     runsCom = RunsCommand(int.from_bytes(args))
-                    self.runsCommand(runsCom)
-                    if runsCom != RunsCommand.GET:
-                        self.ok()
+                    self.runsCommand(runsCom)                        
                 case _:
                     sendCom(self.__sock, BackendMessage.EXCEPTION, f'Unknown command "{com}"'.encode())
                 

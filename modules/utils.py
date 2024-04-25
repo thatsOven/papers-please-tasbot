@@ -1,8 +1,8 @@
-from enum      import Enum
+from PIL       import Image
 from typing    import Self
 from functools import total_ordering
 from datetime  import date, timedelta
-import numpy as np
+import cv2, numpy as np
 
 from modules.constants.screen import *
 
@@ -49,10 +49,8 @@ def arrayEQWithTol(a: np.ndarray, b: np.ndarray, tol: int) -> bool:
     diff[diff >= 255 - tol] = 0
     return (diff <= tol).all()
 
-class Sex(Enum):
-    # as much as i don't like this, the game has two of these :c
-    # so i'm using booleans cause cleaner/faster code
-    M, F = False, True 
+def toGrayCV2(img: Image.Image) -> cv2.typing.MatLike:
+    return cv2.cvtColor(cv2.cvtColor(np.asarray(img).copy(), cv2.COLOR_RGBA2BGRA), cv2.COLOR_BGRA2GRAY)
 
 @total_ordering
 class Name:

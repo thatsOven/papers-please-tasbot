@@ -3,11 +3,10 @@ from typing import TYPE_CHECKING
 from modules.documents.document import Document
 from modules.documents.passport import Passport
 from modules.constants.screen   import *
+from modules.constants.other    import TASException
 
 if TYPE_CHECKING:
     from tas import TAS
-
-class TASException(Exception): ...
 
 class DocumentStack:
     def __init__(self, tas: "TAS"):

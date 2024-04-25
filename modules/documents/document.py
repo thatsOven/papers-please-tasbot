@@ -1,6 +1,6 @@
 from abc    import ABC
 from PIL    import Image
-from typing import Self
+from typing import Self, Type, TYPE_CHECKING
 import numpy as np, pyautogui as pg
 
 from modules.utils import bgFilter
@@ -16,8 +16,11 @@ def convertBox(box: tuple[int, int, int, int], offset: tuple[int, int]):
 def getBox(x0, y0, x1, y2):
     return (x0, y0, x1 + 1, y2 + 1)
 
+if TYPE_CHECKING:
+    from tas import TAS
+
 class Document(ABC):
-    TAS = None # again, circular imports (ugh)
+    TAS: Type["TAS"] = None # again, circular imports (ugh)
 
     @staticmethod
     def load(): 

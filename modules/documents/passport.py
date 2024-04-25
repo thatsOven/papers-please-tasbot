@@ -1,6 +1,6 @@
 from PIL    import Image
 from enum   import Enum
-from typing import Self
+from typing import Self, Type, TYPE_CHECKING
 import os, numpy as np
 
 from modules.constants.screen   import *
@@ -14,6 +14,8 @@ import logging
 
 logger = logging.getLogger('tas.' + __name__)
 
+if TYPE_CHECKING:
+    from tas import TAS
 
 class City(Enum):
     (
@@ -97,7 +99,7 @@ class PassportType:
                 return textFieldOffset(self.layout.number[:2])
 
 class Passport:
-    TAS = None
+    TAS: Type["TAS"] = None
 
     def __init__(self, name, birth, sex, city, expiration, number, type_):
         self.name: Name          = name

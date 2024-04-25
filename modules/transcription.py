@@ -1,6 +1,6 @@
 from PIL    import Image
 from enum   import Enum
-from typing import TYPE_CHECKING
+from typing import Type, TYPE_CHECKING
 import os, pyautogui as pg, numpy as np
 
 from modules.constants.screen   import *
@@ -43,7 +43,7 @@ class AnalyzeData:
         self.message = None
     
 class Transcription:
-    TAS = None
+    TAS: Type["TAS"] = None
 
     NEXT = None
     BACK = None

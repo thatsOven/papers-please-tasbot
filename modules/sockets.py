@@ -13,20 +13,21 @@ def recvDynamic(sock: socket.socket) -> bytes | None:
     if not size: return None
     return sock.recv(int.from_bytes(size))
 
+def getArgsSize(command: FrontendMessage | BackendMessage) -> int | None:
+    if type(command) is FrontendMessage:
+        if command not in FRONTEND_COM_ARG_SIZES: return -1
+        return FRONTEND_COM_ARG_SIZES[command]
+    elif type(command) is BackendMessage:
+        if command not in BACKEND_COM_ARG_SIZES: return -1
+        return BACKEND_COM_ARG_SIZES[command]
+    return -1
+
 def sendCom(sock: socket.socket, command: FrontendMessage | BackendMessage, args: bytes | None = None) -> None:
     sock.send(command.value.to_bytes())
 
-    if args is None:
-        return
-    
-    if type(command) is FrontendMessage:
-        if command in FRONTEND_COM_ARG_SIZES:
-            size = FRONTEND_COM_ARG_SIZES[command]
-        else: return
-    elif type(command) is BackendMessage:
-        if command in BACKEND_COM_ARG_SIZES:
-            size = BACKEND_COM_ARG_SIZES[command]
-        else: return
+    if args is None: return
+    size = getArgsSize(command)
+    if size == -1: return
 
     if size is None:
           sendDynamic(sock, args)
@@ -37,14 +38,8 @@ def recvCom(sock: socket.socket, type_: Type[FrontendMessage | BackendMessage]) 
     if not command: return None
     command = type_(int.from_bytes(command))
 
-    if type_ is FrontendMessage:
-        if command in FRONTEND_COM_ARG_SIZES:
-            size = FRONTEND_COM_ARG_SIZES[command]
-        else: return command, None
-    elif type_ is BackendMessage:
-        if command in BACKEND_COM_ARG_SIZES:
-            size = BACKEND_COM_ARG_SIZES[command]
-        else: return command, None
+    size = getArgsSize(command)
+    if size == -1: return command, None
 
     if size is None:
           args = recvDynamic(sock)
