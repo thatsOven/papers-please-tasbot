@@ -216,14 +216,12 @@ class TAS:
             os.path.join(TAS.ASSETS, "noCorrelation.png")
         ).convert("RGB")
 
-        visaSlip = Image.open(
+        TAS.VISA_SLIP = np.asarray(doubleImage(Image.open(
             os.path.join(TAS.ASSETS, "papers", "VisaSlipInner.png")
-        ).convert("RGB")
-        seizureSlip = Image.open(
+        ).convert("RGB")))
+        TAS.SEIZURE_SLIP = np.asarray(doubleImage(Image.open(
             os.path.join(TAS.ASSETS, "papers", "SeizureSlipInner.png")
-        ).convert("RGB")
-        TAS.VISA_SLIP    = np.asarray(   visaSlip.resize((   visaSlip.size[0] * 2,    visaSlip.size[1] * 2), Image.Resampling.NEAREST))
-        TAS.SEIZURE_SLIP = np.asarray(seizureSlip.resize((seizureSlip.size[0] * 2, seizureSlip.size[1] * 2), Image.Resampling.NEAREST))
+        ).convert("RGB")))
 
         weightBg = Image.open(
             os.path.join(TAS.ASSETS, "weightBG.png")
@@ -310,8 +308,7 @@ class TAS:
             "digits": None
         }
 
-        digits = Image.open(os.path.join(TAS.ASSETS, "fonts", "digits.png")).convert("RGB")
-        digits = digits.resize((digits.size[0] * 2, digits.size[1] * 2), Image.Resampling.NEAREST)
+        digits = doubleImage(Image.open(os.path.join(TAS.ASSETS, "fonts", "digits.png")).convert("RGB"))
         TAS.FONTS["digits"] = {
             str(c): np.asarray(digits.crop((x * DIGITS_LENGTH, 0, (x + 1) * DIGITS_LENGTH, DIGITS_HEIGHT)))
             for x, c in enumerate(DIGITS)

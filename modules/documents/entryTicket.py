@@ -4,11 +4,12 @@ import os, datetime, pyautogui as pg, numpy as np
 
 from modules.documents.document import Document, getBox, convertBox
 from modules.textRecognition    import parseDate
+from modules.utils              import doubleImage
 
 class EntryTicket(Document):
-    LABEL         = None
-    TRACK_IMAGE   = None
-    INNER_TEXTURE = None
+    LABEL: np.ndarray          = None
+    TRACK_IMAGE: Image.Image   = None
+    INNER_TEXTURE: Image.Image = None
 
     TABLE_OFFSET = (245, 159)
     TEXT_COLOR   = (119, 103, 137)
@@ -23,8 +24,7 @@ class EntryTicket(Document):
             os.path.join(EntryTicket.TAS.ASSETS, "papers", "entryTicket", "trackImage.png")
         ).convert("RGB")
 
-        innerTexture = Image.open(os.path.join(EntryTicket.TAS.ASSETS, "papers", "entryTicket", "inner.png")).convert("RGB")
-        EntryTicket.INNER_TEXTURE = innerTexture.resize((innerTexture.size[0] * 2, innerTexture.size[1] * 2), Image.Resampling.NEAREST)
+        EntryTicket.INNER_TEXTURE = doubleImage(Image.open(os.path.join(EntryTicket.TAS.ASSETS, "papers", "entryTicket", "inner.png")).convert("RGB"))
         EntryTicket.LABEL = np.asarray(EntryTicket.INNER_TEXTURE.crop(convertBox(EntryTicket.LAYOUT["label"], EntryTicket.TABLE_OFFSET)))
 
     @staticmethod

@@ -80,8 +80,7 @@ class PassportType:
         self.cities               = cities
         self.layout: PassportData = layout
         
-        innerTexture = Image.open(os.path.join(baseDir, "inner.png")).convert("RGB")
-        innerTexture = innerTexture.resize((innerTexture.size[0] * 2, innerTexture.size[1] * 2), Image.Resampling.NEAREST)
+        innerTexture = doubleImage(Image.open(os.path.join(baseDir, "inner.png")).convert("RGB"))
         self.backgrounds = PassportData(
             name       = innerTexture.crop(convertBox(self.layout.name,       PASSPORT_TABLE_OFFSET)),
             birth      = innerTexture.crop(convertBox(self.layout.birth,      PASSPORT_TABLE_OFFSET)),
