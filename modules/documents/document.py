@@ -1,6 +1,6 @@
 from abc    import ABC
 from PIL    import Image
-from typing import Self, Type, TYPE_CHECKING
+from typing import Self, Type, ClassVar, Callable, Any, TYPE_CHECKING
 import numpy as np, pyautogui as pg
 
 from modules.utils import bgFilter
@@ -19,8 +19,8 @@ def getBox(x0, y0, x1, y2):
 if TYPE_CHECKING:
     from tas import TAS
 
-class Document(ABC):
-    TAS: Type["TAS"] = None # again, circular imports (ugh)
+class BaseDocument(ABC):
+    TAS: ClassVar[Type["TAS"]] = None # again, circular imports (ugh)
 
     @staticmethod
     def load(): 
@@ -28,10 +28,6 @@ class Document(ABC):
     
     @staticmethod
     def checkMatch(docImg: Image.Image) -> bool: 
-        raise NotImplementedError
-
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
         raise NotImplementedError
     
     @staticmethod
@@ -51,9 +47,27 @@ class Document(ABC):
     
     @staticmethod
     def checkNoSeal(sealArea: np.ndarray, background: Image.Image, seal: Image.Image, whiteBg: Image.Image | None = None) -> bool:
-        return pg.locate(seal, Image.fromarray(Document.__sealFilter(sealArea, background, whiteBg))) is None
+        return pg.locate(seal, Image.fromarray(BaseDocument.__sealFilter(sealArea, background, whiteBg))) is None
     
     @staticmethod
     def sealPos(sealArea: np.ndarray, background: Image.Image, whiteBg: Image.Image | None = None) -> tuple[int, int]:
-        ys, xs, _ = Document.__sealFilter(sealArea, background, whiteBg).nonzero()
+        ys, xs, _ = BaseDocument.__sealFilter(sealArea, background, whiteBg).nonzero()
         return (xs[0], ys[0])
+    
+    @staticmethod
+    def field(fn: Callable[[Self], Any]) -> Callable[[Self], Any]:
+        @property
+        def wrapper(self):
+            fieldName = "_cached__" + fn.__name__
+            try:
+                val = getattr(self, fieldName)
+            except AttributeError:
+                val = fn(self)
+                setattr(self, fieldName, val)
+            return val
+        return wrapper
+    
+    def __init__(self, docImg: Image.Image):
+        self.docImg = docImg
+
+class Document(BaseDocument): ...

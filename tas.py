@@ -46,7 +46,7 @@ from modules.utils            import *
 from modules.textRecognition          import STATIC_OBJ, parseText, digitCheck, digitLength
 from modules.transcription            import Transcription
 from modules.documentStack            import DocumentStack, TASException
-from modules.documents.document       import Document
+from modules.documents.document       import Document, BaseDocument
 from modules.documents.entryTicket    import EntryTicket
 from modules.documents.entryPermit    import EntryPermit
 from modules.documents.workPass       import WorkPass
@@ -449,6 +449,7 @@ class TAS:
 
         Passport.TAS      = TAS
         Document.TAS      = TAS
+        BaseDocument.TAS  = TAS
         Transcription.TAS = TAS
         Transcription.load()
 
@@ -1090,11 +1091,12 @@ class TAS:
 
         for document in TAS.DOCUMENTS:
             if document.checkMatch(docImg):
-                doc: Document = document.parse(docImg)
+                doc = document(docImg)
 
                 if self.doConfiscate and self.currRun.confiscatePassportWhen(doc):
                     self.confiscate = True
 
+                if TAS.SETTINGS["debug"]: logger.info(doc)
                 return doc
             
         if self.poison:
@@ -1126,11 +1128,12 @@ class TAS:
 
         if self.date == TAS.DAY_1: return type_.nation
 
-        passport: Passport = Passport.parse(docImg, type_)
+        passport = Passport(docImg, type_)
 
         if self.doConfiscate and self.currRun.confiscatePassportWhen(passport):
             self.confiscate = True
 
+        if TAS.SETTINGS["debug"]: logger.info(passport)
         return passport
     
     def fastPassportScan(self, before: np.ndarray, after: np.ndarray) -> Nation:
@@ -1342,7 +1345,6 @@ class TAS:
         while True:
             self.moveTo(PAPER_POS)
             doc: Document | Passport = self.docScan(move = False)
-            if TAS.SETTINGS["debug"]: logger.info(doc)
             self.moveTo(PAPER_SCAN_POS)
 
             if type(doc) is Passport:

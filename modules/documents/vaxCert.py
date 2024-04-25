@@ -7,7 +7,7 @@ import os, numpy as np
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
-from modules.documents.document import Document, getBox
+from modules.documents.document import BaseDocument, Document, getBox
 from modules.textRecognition    import parseText, parseDate
 from modules.utils              import *
 
@@ -21,7 +21,7 @@ class Disease(Enum):
         "RUBELLA", "TETANUS", "TUBERC.", "TYPHUS", "YEL.FEV."
     )
 
-class Vaccine:
+class Vaccine(BaseDocument):
     BACKGROUNDS = None
     LAYOUT = {
         "date":    getBox( 6, 6,  71, 17),
@@ -33,26 +33,25 @@ class Vaccine:
         Vaccine.BACKGROUNDS = Document.getBgs(Vaccine.LAYOUT, (0, 0), fullBg)
         Vaccine.BACKGROUNDS["full"] = np.asarray(fullBg)
 
-    @staticmethod
-    def parse(vaccineImg: Image.Image) -> Self | None:
-        if np.array_equal(np.asarray(vaccineImg), Vaccine.BACKGROUNDS["full"]):
-            return None
-        
-        return Vaccine(
-            disease = Disease(parseText(
-                vaccineImg.crop(Vaccine.LAYOUT["disease"]), Vaccine.BACKGROUNDS["disease"],
-                VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, DISEASE_CHARS,
-                endAt = "  "
-            )),
-            date_ = parseDate(
-                vaccineImg.crop(Vaccine.LAYOUT["date"]), Vaccine.BACKGROUNDS["date"],
-                VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR
-            )
-        )
+    def empty(self) -> bool:
+        if np.array_equal(np.asarray(self.docImg), Vaccine.BACKGROUNDS["full"]):
+            return True
+        return False
+    
+    @Document.field
+    def disease(self) -> Disease:
+        return Disease(parseText(
+            self.docImg.crop(Vaccine.LAYOUT["disease"]), Vaccine.BACKGROUNDS["disease"],
+            VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, DISEASE_CHARS,
+            endAt = "  "
+        ))
 
-    def __init__(self, disease, date_):
-        self.disease: Disease = disease
-        self.date: date       = date_
+    @Document.field
+    def date(self) -> date:
+        return parseDate(
+            self.docImg.crop(Vaccine.LAYOUT["date"]), Vaccine.BACKGROUNDS["date"],
+            VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR
+        )
 
     def __repr__(self):
         return f"Vaccine({self.disease}, {self.date})"
@@ -87,35 +86,34 @@ class VaxCert(Document):
     @staticmethod
     def checkMatch(docImg: Image.Image) -> bool:
         return np.array_equal(np.asarray(docImg.crop(VaxCert.LAYOUT["label"])), VaxCert.BACKGROUNDS["label"])
-    
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
-        vaxCert = VaxCert(
-            name = Name.fromPermitOrPass(parseText(
-                docImg.crop(VaxCert.LAYOUT["name"]), VaxCert.BACKGROUNDS["name"],
-                VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                misalignFix = True
-            )),
-            number = parseText(
-                docImg.crop(VaxCert.LAYOUT["number"]), VaxCert.BACKGROUNDS["number"],
-                VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, PASSPORT_NUM_CHARS,
-                misalignFix = True
-            ),
-            vaccines = []
+
+    @Document.field
+    def name(self) -> Name:
+        return Name.fromPermitOrPass(parseText(
+            self.docImg.crop(VaxCert.LAYOUT["name"]), VaxCert.BACKGROUNDS["name"],
+            VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+            misalignFix = True
+        ))
+
+    @Document.field
+    def number(self) -> str:
+        return parseText(
+            self.docImg.crop(VaxCert.LAYOUT["number"]), VaxCert.BACKGROUNDS["number"],
+            VaxCert.TAS.FONTS["bm-mini"], VaxCert.TEXT_COLOR, PASSPORT_NUM_CHARS,
+            misalignFix = True
         )
+    
+    @Document.field
+    def vaccines(self) -> list[Vaccine]:
+        vaccines = []
 
         for i in range(VaxCert.N_VACCINES):
-            vax = Vaccine.parse(docImg.crop(VaxCert.LAYOUT[f"vax-{i}"]))
-            if vax is None: break
-            vaxCert.vaccines.append(vax)
+            vax = Vaccine(self.docImg.crop(VaxCert.LAYOUT[f"vax-{i}"]))
+            if vax.empty(): break
+            vaccines.append(vax)
 
-        return vaxCert
+        return vaccines
 
-    def __init__(self, name, number, vaccines):
-        self.name: Name              = name
-        self.number                  = number
-        self.vaccines: list[Vaccine] = vaccines
-    
     def __repr__(self) -> str:
         return f"""==- Certificate Of Vaccination -==
 name:     {self.name}

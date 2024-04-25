@@ -66,31 +66,32 @@ class WorkPass(Document):
     def checkMatch(docImg: Image.Image) -> bool:
         return np.array_equal(np.asarray(docImg.crop(WorkPass.LAYOUT["label"])), WorkPass.BACKGROUNDS["label"])
     
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
-        return WorkPass(
-            name = Name.fromPermitOrPass(parseText(
-                docImg.crop(WorkPass.LAYOUT["name"]), WorkPass.BACKGROUNDS["name"],
-                WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                misalignFix = True
-            )),
-            field = Field(parseText(
-                docImg.crop(WorkPass.LAYOUT["field"]), WorkPass.BACKGROUNDS["field"],
-                WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR, WORK_PASS_FIELD_CHARS,
-                misalignFix = True
-            )),
-            until = parseDate(
-                docImg.crop(WorkPass.LAYOUT["until"]), WorkPass.BACKGROUNDS["until"],
-                WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR
-            ),
-            sealArea = docImg.crop(WorkPass.LAYOUT["seal-area"])
+    @Document.field
+    def name(self) -> Name:
+        return Name.fromPermitOrPass(parseText(
+            self.docImg.crop(WorkPass.LAYOUT["name"]), WorkPass.BACKGROUNDS["name"],
+            WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+            misalignFix = True
+        ))
+    
+    @Document.field
+    def field(self) -> Field:
+        return Field(parseText(
+            self.docImg.crop(WorkPass.LAYOUT["field"]), WorkPass.BACKGROUNDS["field"],
+            WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR, WORK_PASS_FIELD_CHARS,
+            misalignFix = True
+        ))
+    
+    @Document.field
+    def until(self) -> date:
+        return parseDate(
+            self.docImg.crop(WorkPass.LAYOUT["until"]), WorkPass.BACKGROUNDS["until"],
+            WorkPass.TAS.FONTS["bm-mini"], WorkPass.TEXT_COLOR
         )
     
-    def __init__(self, name, field, until, sealArea):
-        self.name: Name            = name
-        self.field: Field          = field
-        self.until: date           = until
-        self.sealArea: Image.Image = sealArea
+    @Document.field
+    def sealArea(self) -> Image.Image:
+        return self.docImg.crop(WorkPass.LAYOUT["seal-area"])
 
     def checkForgery(self, date: date) -> bool:
         if date < WorkPass.TAS.DAY_11: return False

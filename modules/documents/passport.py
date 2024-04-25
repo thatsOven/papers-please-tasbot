@@ -1,13 +1,13 @@
 from PIL    import Image
 from enum   import Enum
-from typing import Self, Type, TYPE_CHECKING
+from typing import Self, Type, ClassVar, TYPE_CHECKING
 import os, numpy as np
 
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
-from modules.documents.document import convertBox, getBox
+from modules.documents.document import BaseDocument, Document, convertBox, getBox
 from modules.utils              import *
 
 import logging
@@ -97,59 +97,63 @@ class PassportType:
             case Nation.ARSTOTZKA | Nation.OBRISTAN:
                 return textFieldOffset(self.layout.number[:2])
 
-class Passport:
-    TAS: Type["TAS"] = None
+class Passport(BaseDocument):
+    TAS: ClassVar[Type["TAS"]] = None
 
-    def __init__(self, name, birth, sex, city, expiration, number, type_):
-        self.name: Name          = name
-        self.birth               = birth
-        self.sex:  Sex           = sex
-        self.city: City          = city
-        self.expiration          = expiration
-        self.number              = number
-        self.type_: PassportType = type_
+    def __init__(self, docImg: Image.Image, type_: PassportType):
+        super().__init__(docImg)
+        self.type_ = type_
 
-    @staticmethod
-    def parse(docImg: Image.Image, type_: PassportType) -> Self:
-        obristan          = type_.nation == Nation.OBRISTAN
-        obri_or_arstotzka = obristan or type_.nation == Nation.ARSTOTZKA
-        textColor = OBRISTAN_TEXT_COLOR if obristan else PASSPORT_TEXT_COLOR
-
-        passport = Passport(
-            name = Name.fromPassportOrID(parseText(
-                docImg.crop(type_.layout.name), type_.backgrounds.name, 
-                Passport.TAS.FONTS["bm-mini"], PASSPORT_TEXT_COLOR, PASSPORT_NAME_CHARS,
-                endAt = "  "
-            )),
-            birth = parseDate(
-                docImg.crop(type_.layout.birth), type_.backgrounds.birth, 
-                Passport.TAS.FONTS["bm-mini"], textColor
-            ),
-            city = getCity(parseText(
-                docImg.crop(type_.layout.city), type_.backgrounds.city, 
-                Passport.TAS.FONTS["bm-mini"], textColor, PASSPORT_CITY_CHARS,
-                endAt = "  "
-            )),
-            expiration = parseDate(
-                docImg.crop(type_.layout.expiration), type_.backgrounds.expiration, 
-                Passport.TAS.FONTS["bm-mini"], textColor
-            ),
-            number = parseText(
-                docImg.crop(type_.layout.number), type_.backgrounds.number, 
-                Passport.TAS.FONTS["bm-mini"], textColor, PASSPORT_NUM_CHARS,
-                misalignFix = not obri_or_arstotzka,
-                endAt = "  " if obri_or_arstotzka else None
-            ),
-            sex   = None,
-            type_ = type_
+        self.__obristan = type_.nation == Nation.OBRISTAN
+        self.__obriOrArstotzka = self.__obristan or type_.nation == Nation.ARSTOTZKA
+        self.__textColor = OBRISTAN_TEXT_COLOR if self.__obristan else PASSPORT_TEXT_COLOR
+    
+    @Document.field
+    def name(self) -> Name:
+        return Name.fromPassportOrID(parseText(
+            self.docImg.crop(self.type_.layout.name), self.type_.backgrounds.name, 
+            Passport.TAS.FONTS["bm-mini"], PASSPORT_TEXT_COLOR, PASSPORT_NAME_CHARS,
+            endAt = "  "
+        ))
+    
+    @Document.field
+    def birth(self) -> date:
+        return parseDate(
+            self.docImg.crop(self.type_.layout.birth), self.type_.backgrounds.birth, 
+            Passport.TAS.FONTS["bm-mini"], self.__textColor
         )
-
-        if obristan:
-              # i could wait around for a F marked passport from obristan but whatever, this works
-              passport.sex = Sex(not np.array_equal(Passport.TAS.SEX_M_OBRISTAN, np.asarray(docImg.crop(type_.layout.sex))))
-        else: passport.sex = Sex(    np.array_equal(Passport.TAS.SEX_F_GENERIC,  np.asarray(docImg.crop(type_.layout.sex))))
-         
-        return passport
+    
+    @Document.field
+    def city(self) -> City:
+        return getCity(parseText(
+            self.docImg.crop(self.type_.layout.city), self.type_.backgrounds.city, 
+            Passport.TAS.FONTS["bm-mini"], self.__textColor, PASSPORT_CITY_CHARS,
+            endAt = "  "
+        ))
+    
+    @Document.field
+    def expiration(self) -> date:
+        return parseDate(
+            self.docImg.crop(self.type_.layout.expiration), self.type_.backgrounds.expiration, 
+            Passport.TAS.FONTS["bm-mini"], self.__textColor
+        )
+    
+    @Document.field
+    def number(self) -> str:
+        return parseText(
+            self.docImg.crop(self.type_.layout.number), self.type_.backgrounds.number, 
+            Passport.TAS.FONTS["bm-mini"], self.__textColor, PASSPORT_NUM_CHARS,
+            misalignFix = not self.__obriOrArstotzka,
+            endAt = "  " if self.__obriOrArstotzka else None
+        )
+    
+    @Document.field
+    def sex(self) -> Sex:
+        if self.__obristan:
+            # i could wait around for a F marked passport from obristan but whatever, this works
+            return Sex(not np.array_equal(Passport.TAS.SEX_M_OBRISTAN, np.asarray(self.docImg.crop(self.type_.layout.sex))))
+        else:
+            return Sex(np.array_equal(Passport.TAS.SEX_F_GENERIC,  np.asarray(self.docImg.crop(self.type_.layout.sex))))
     
     def isSexWrong(self):
         # this actually doesn't cover all cases, cause the game really wants you to assume the person's sex

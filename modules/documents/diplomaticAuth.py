@@ -60,40 +60,43 @@ class DiplomaticAuth(Document):
     def checkMatch(docImg: Image.Image) -> bool:
         return np.array_equal(np.asarray(docImg.crop(DiplomaticAuth.LAYOUT["label"])), DiplomaticAuth.BACKGROUNDS["label"])
     
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
-        return DiplomaticAuth(
-            name = Name.fromPermitOrPass(parseText(
-                docImg.crop(DiplomaticAuth.LAYOUT["name"]), DiplomaticAuth.BACKGROUNDS["name"],
-                DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                misalignFix = True
-            )),
-            number = parseText(
-                docImg.crop(DiplomaticAuth.LAYOUT["number"]), DiplomaticAuth.BACKGROUNDS["number"],
-                DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PASSPORT_NUM_CHARS,
-                misalignFix = True
-            ),
-            nation = Nation(parseText(
-                docImg.crop(DiplomaticAuth.LAYOUT["nation"]), DiplomaticAuth.BACKGROUNDS["nation"],
-                DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PERMIT_PASS_CHARS,
-                endAt = "  "
-            )),
-            accessTo = [Nation(x.strip()) for x in "".join(
-                parseText(
-                    docImg.crop(DiplomaticAuth.LAYOUT[f"access-to-{i}"]), DiplomaticAuth.BACKGROUNDS[f"access-to-{i}"],
-                    DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, DIPLOMATIC_AUTH_ACCESS_TO_CHARS,
-                    endAt = "  "
-                ) for i in range(DiplomaticAuth.ACCESS_TO_ROWS)
-            ).split(",")],
-            sealArea = docImg.crop(DiplomaticAuth.LAYOUT["seal-area"])
+    @Document.field
+    def name(self) -> Name:
+        return Name.fromPermitOrPass(parseText(
+            self.docImg.crop(DiplomaticAuth.LAYOUT["name"]), DiplomaticAuth.BACKGROUNDS["name"],
+            DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+            misalignFix = True
+        ))
+    
+    @Document.field
+    def number(self) -> str:
+        return parseText(
+            self.docImg.crop(DiplomaticAuth.LAYOUT["number"]), DiplomaticAuth.BACKGROUNDS["number"],
+            DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PASSPORT_NUM_CHARS,
+            misalignFix = True
         )
-
-    def __init__(self, name, number, nation, accessTo, sealArea):
-        self.name: Name             = name
-        self.number                 = number
-        self.nation: Nation         = nation
-        self.accessTo: list[Nation] = accessTo
-        self.sealArea: Image.Image  = sealArea
+    
+    @Document.field
+    def nation(self) -> Nation:
+        return Nation(parseText(
+            self.docImg.crop(DiplomaticAuth.LAYOUT["nation"]), DiplomaticAuth.BACKGROUNDS["nation"],
+            DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, PERMIT_PASS_CHARS,
+            endAt = "  "
+        ))
+    
+    @Document.field
+    def accessTo(self) -> list[Nation]:
+        return [Nation(x.strip()) for x in "".join(
+            parseText(
+                self.docImg.crop(DiplomaticAuth.LAYOUT[f"access-to-{i}"]), DiplomaticAuth.BACKGROUNDS[f"access-to-{i}"],
+                DiplomaticAuth.TAS.FONTS["bm-mini"], DiplomaticAuth.TEXT_COLOR, DIPLOMATIC_AUTH_ACCESS_TO_CHARS,
+                endAt = "  "
+            ) for i in range(DiplomaticAuth.ACCESS_TO_ROWS)
+        ).split(",")]
+    
+    @Document.field
+    def sealArea(self) -> Image.Image:
+        return self.docImg.crop(DiplomaticAuth.LAYOUT["seal-area"])
 
     def checkForgery(self) -> bool:        
         return all(Document.checkNoSeal(

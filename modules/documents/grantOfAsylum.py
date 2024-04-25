@@ -1,5 +1,4 @@
 from PIL      import Image
-from typing   import Self
 from datetime import date
 import os, numpy as np
 
@@ -49,65 +48,75 @@ class GrantOfAsylum(Document):
     def checkMatch(docImg: Image.Image) -> bool:
         return np.array_equal(np.asarray(docImg.crop(GrantOfAsylum.LAYOUT["label"])), GrantOfAsylum.BACKGROUNDS["label"])
     
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
-        return GrantOfAsylum(
-            name = Name(
-                parseText(
-                    docImg.crop(GrantOfAsylum.LAYOUT["first-name"]), GrantOfAsylum.BACKGROUNDS["first-name"],
-                    GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                    endAt = "  "
-                ),
-                parseText(
-                    docImg.crop(GrantOfAsylum.LAYOUT["last-name"]), GrantOfAsylum.BACKGROUNDS["last-name"],
-                    GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                    endAt = "  "
-                ),
-            ),
-            nation = Nation(parseText(
-                docImg.crop(GrantOfAsylum.LAYOUT["nation"]), GrantOfAsylum.BACKGROUNDS["nation"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_CHARS,
-                endAt = "  "
-            )),
-            number = parseText(
-                docImg.crop(GrantOfAsylum.LAYOUT["number"]), GrantOfAsylum.BACKGROUNDS["number"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PASSPORT_NUM_CHARS,
+    @Document.field
+    def name(self) -> Name:
+        return Name(
+            parseText(
+                self.docImg.crop(GrantOfAsylum.LAYOUT["first-name"]), GrantOfAsylum.BACKGROUNDS["first-name"],
+                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
                 endAt = "  "
             ),
-            birth = parseDate(
-                docImg.crop(GrantOfAsylum.LAYOUT["birth"]), GrantOfAsylum.BACKGROUNDS["birth"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR
+            parseText(
+                self.docImg.crop(GrantOfAsylum.LAYOUT["last-name"]), GrantOfAsylum.BACKGROUNDS["last-name"],
+                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+                endAt = "  "
             ),
-            height = int(parseText(
-                docImg.crop(GrantOfAsylum.LAYOUT["height"]), GrantOfAsylum.BACKGROUNDS["height"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, HEIGHT_CHARS,
-                endAt = "cm"
-            )[:-2]),
-            weight = int(parseText(
-                docImg.crop(GrantOfAsylum.LAYOUT["weight"]), GrantOfAsylum.BACKGROUNDS["weight"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, WEIGHT_CHARS,
-                endAt = "kg"
-            )[:-2]),
-            expiration = parseDate(
-                docImg.crop(GrantOfAsylum.LAYOUT["expiration"]), GrantOfAsylum.BACKGROUNDS["expiration"],
-                GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR
-            ),
-            sealArea     = docImg.crop(GrantOfAsylum.LAYOUT["seal-area"]),
-            picture      = docImg.crop(GrantOfAsylum.LAYOUT["picture"]),
-            fingerprints = docImg.crop(GrantOfAsylum.LAYOUT["fingerprints"])
         )
     
-    def __init__(self, name, nation, number, birth, height, weight, expiration, sealArea, picture, fingerprints):
-        self.name: Name       = name
-        self.nation: Nation   = nation
-        self.number           = number
-        self.birth: date      = birth
-        self.height           = height
-        self.weight           = weight
-        self.expiration: date = expiration
-        self.sealArea:     Image.Image = sealArea
-        self.picture:      Image.Image = picture
-        self.fingerprints: Image.Image = fingerprints
+    @Document.field
+    def nation(self) -> Nation:
+        return Nation(parseText(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["nation"]), GrantOfAsylum.BACKGROUNDS["nation"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PERMIT_PASS_CHARS,
+            endAt = "  "
+        ))
+    
+    @Document.field
+    def number(self) -> str:
+        return parseText(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["number"]), GrantOfAsylum.BACKGROUNDS["number"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, PASSPORT_NUM_CHARS,
+            endAt = "  "
+        )
+    
+    @Document.field
+    def birth(self) -> date:
+        return parseDate(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["birth"]), GrantOfAsylum.BACKGROUNDS["birth"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR
+        )
+    
+    @Document.field
+    def height(self) -> int:
+        return int(parseText(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["height"]), GrantOfAsylum.BACKGROUNDS["height"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, HEIGHT_CHARS,
+            endAt = "cm"
+        )[:-2])
+    
+    @Document.field
+    def weight(self) -> int:
+        return int(parseText(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["weight"]), GrantOfAsylum.BACKGROUNDS["weight"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR, WEIGHT_CHARS,
+            endAt = "kg"
+        )[:-2])
+    
+    @Document.field
+    def expiration(self) -> date:
+        return parseDate(
+            self.docImg.crop(GrantOfAsylum.LAYOUT["expiration"]), GrantOfAsylum.BACKGROUNDS["expiration"],
+            GrantOfAsylum.TAS.FONTS["bm-mini"], GrantOfAsylum.TEXT_COLOR
+        )
+    
+    @Document.field
+    def sealArea(self) -> Image.Image:
+        return self.docImg.crop(GrantOfAsylum.LAYOUT["seal-area"])
+    
+    # unused for now
+    @Document.field
+    def fingerprints(self) -> Image.Image:
+        return self.docImg.crop(GrantOfAsylum.LAYOUT["fingerprints"])
     
     def checkForgery(self) -> bool:        
         return all(Document.checkNoSeal(

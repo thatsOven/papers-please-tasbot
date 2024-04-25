@@ -1,5 +1,4 @@
 from PIL      import Image
-from typing   import Self
 from datetime import date
 import os, numpy as np
 
@@ -43,43 +42,48 @@ class EntryPermit(Document):
     def checkMatch(docImg: Image.Image) -> bool:
         return np.array_equal(np.asarray(docImg.crop(EntryPermit.LAYOUT["label"])), EntryPermit.BACKGROUNDS["label"])
     
-    @staticmethod
-    def parse(docImg: Image.Image) -> Self:
-        return EntryPermit(
-            name = Name.fromPermitOrPass(parseText(
-                docImg.crop(EntryPermit.LAYOUT["name"]), EntryPermit.BACKGROUNDS["name"],
-                EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
-                misalignFix = True
-            )),
-            number = parseText(
-                docImg.crop(EntryPermit.LAYOUT["number"]), EntryPermit.BACKGROUNDS["number"],
-                EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PASSPORT_NUM_CHARS,
-                misalignFix = True
-            ),
-            purpose = Purpose(parseText(
-                docImg.crop(EntryPermit.LAYOUT["purpose"]), EntryPermit.BACKGROUNDS["purpose"],
-                EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_CHARS,
-                misalignFix = True
-            )),
-            duration = PERMIT_DURATIONS[parseText(
-                docImg.crop(EntryPermit.LAYOUT["duration"]), EntryPermit.BACKGROUNDS["duration"],
-                EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_CHARS_NUM,
-                misalignFix = True
-            )],
-            expiration = parseDate(
-                docImg.crop(EntryPermit.LAYOUT["expiration"]), EntryPermit.BACKGROUNDS["expiration"],
-                EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR
-            ),
-            sealArea = docImg.crop(EntryPermit.LAYOUT["seal-area"])
+    @Document.field
+    def name(self) -> Name:
+        return Name.fromPermitOrPass(parseText(
+            self.docImg.crop(EntryPermit.LAYOUT["name"]), EntryPermit.BACKGROUNDS["name"],
+            EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+            misalignFix = True
+        ))
+    
+    @Document.field
+    def number(self) -> str:
+        return parseText(
+            self.docImg.crop(EntryPermit.LAYOUT["number"]), EntryPermit.BACKGROUNDS["number"],
+            EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PASSPORT_NUM_CHARS,
+            misalignFix = True
         )
-
-    def __init__(self, name, number, purpose, duration, expiration, sealArea):
-        self.name: Name              = name
-        self.number                  = number
-        self.purpose: Purpose        = purpose
-        self.duration: relativedelta = duration
-        self.expiration: date        = expiration
-        self.sealArea: Image.Image   = sealArea
+    
+    @Document.field
+    def purpose(self) -> Purpose:
+        return Purpose(parseText(
+            self.docImg.crop(EntryPermit.LAYOUT["purpose"]), EntryPermit.BACKGROUNDS["purpose"],
+            EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_CHARS,
+            misalignFix = True
+        ))
+    
+    @Document.field
+    def duration(self) -> relativedelta:
+        return PERMIT_DURATIONS[parseText(
+            self.docImg.crop(EntryPermit.LAYOUT["duration"]), EntryPermit.BACKGROUNDS["duration"],
+            EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR, PERMIT_PASS_CHARS_NUM,
+            misalignFix = True
+        )]
+    
+    @Document.field
+    def expiration(self) -> date:
+        return parseDate(
+            self.docImg.crop(EntryPermit.LAYOUT["expiration"]), EntryPermit.BACKGROUNDS["expiration"],
+            EntryPermit.TAS.FONTS["bm-mini"], EntryPermit.TEXT_COLOR
+        )
+    
+    @Document.field
+    def sealArea(self) -> Image.Image:
+        return self.docImg.crop(EntryPermit.LAYOUT["seal-area"])
 
     def checkForgery(self, date: date) -> bool:
         if date < EntryPermit.TAS.DAY_11: return False

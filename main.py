@@ -13,7 +13,7 @@ from typing      import Callable, ClassVar, NoReturn
 
 from modules.sockets import *
 
-VERSION = "2024.4.22"
+VERSION = "2024.4.26"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"
@@ -102,13 +102,21 @@ class GUI:
                 self.consolePrint(self.__consoleQueue.popleft())
         self.window.update()
 
+    def errorBox(self, title: str, message: str) -> None:
+        if self.__running:
+            messagebox.showerror(title, message)
+
     def __receive(self) -> tuple[BackendMessage, bytes | None] | None:
         waiting = True
         data: tuple[BackendMessage, bytes | None] = None
+        exception: Exception | None               = None
 
         def receive():
-            nonlocal waiting, data
-            data    = recvCom(self.__backendSock, BackendMessage)
+            nonlocal waiting, data, exception
+            try:    
+                data = recvCom(self.__backendSock, BackendMessage)
+            except Exception as e: 
+                exception = e
             waiting = False
 
         t = Thread(target = receive)
@@ -121,9 +129,9 @@ class GUI:
         t.join()
 
         if data is None:
-            messagebox.showerror(
-                title   = "Unable to receive data",
-                message = "The backend connection was closed abruptly"
+            self.errorBox(
+                "Unable to receive data",
+                ''.join(traceback.format_exception(exception))
             )
             return None
         
@@ -131,9 +139,9 @@ class GUI:
 
         if com in (BackendMessage.EXCEPTION, BackendMessage.PANIC):
             exc = com == BackendMessage.EXCEPTION
-            messagebox.showerror(
-                title   = "Exception from backend" if exc else "Backend crashed!",
-                message = args.decode()
+            self.errorBox(
+                "Exception from backend" if exc else "Backend crashed!",
+                args.decode()
             )
 
             if not exc:
@@ -190,7 +198,7 @@ class GUI:
             data = self.backendCom(FrontendMessage.RUNS, RunsCommand.GET.value.to_bytes())
             if data is not None: break
         else:
-            messagebox.showerror("Error", f"Unable to get runs from backend after {GET_RUNS_ATTEMPTS} attempts. Closing")
+            self.errorBox("Error", f"Unable to get runs from backend after {GET_RUNS_ATTEMPTS} attempts. Closing")
             self.cleanup()
 
         self.runs = eval(data)
@@ -221,9 +229,9 @@ class GUI:
             with open(GUI.SETTINGS_FILE, "w", encoding = "utf-8") as settings:
                 json.dump(self.settings, settings)
         except Exception:
-            messagebox.showerror(
-                title = "Unable to write settings", 
-                message = "Unable to write settings. Error:\n" + traceback.format_exc()
+            self.errorBox(
+                "Unable to write settings", 
+                "Unable to write settings. Error:\n" + traceback.format_exc()
             )
 
     def loadSettings(self) -> None:
@@ -238,9 +246,9 @@ class GUI:
                 else:
                     self.settings = tmpSettings
             except Exception:
-                messagebox.showerror(
-                    title = "Unable to read settings", 
-                    message = "Unable to read settings. Error:\n" + traceback.format_exc()
+                self.errorBox(
+                    "Unable to read settings", 
+                    "Unable to read settings. Error:\n" + traceback.format_exc()
                 )
         else:
             self.writeSettings()
