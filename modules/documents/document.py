@@ -1,6 +1,6 @@
 from abc    import ABC
 from PIL    import Image
-from typing import Self, Type, ClassVar, Callable, Any, TYPE_CHECKING
+from typing import Self, Type, ClassVar, Callable, TypeVar, Generic, TYPE_CHECKING
 import numpy as np, pyautogui as pg
 
 from modules.utils import bgFilter
@@ -18,6 +18,11 @@ def getBox(x0, y0, x1, y2):
 
 if TYPE_CHECKING:
     from tas import TAS
+
+T = TypeVar("T")
+class TypedGetterProperty(property, Generic[T]):
+    def __get__(self, instance, owner: Type | None = None) -> T:
+        return super().__get__(instance, owner)
 
 class BaseDocument(ABC):
     TAS: ClassVar[Type["TAS"]] = None # again, circular imports (ugh)
@@ -53,10 +58,10 @@ class BaseDocument(ABC):
     def sealPos(sealArea: np.ndarray, background: Image.Image, whiteBg: Image.Image | None = None) -> tuple[int, int]:
         ys, xs, _ = BaseDocument.__sealFilter(sealArea, background, whiteBg).nonzero()
         return (xs[0], ys[0])
-    
+
     @staticmethod
-    def field(fn: Callable[[Self], Any]) -> Callable[[Self], Any]:
-        @property
+    def field(fn: Callable[[Self], T]) -> TypedGetterProperty[T]:
+        @TypedGetterProperty
         def wrapper(self):
             fieldName = "_cached__" + fn.__name__
             try:
