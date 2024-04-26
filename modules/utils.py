@@ -49,9 +49,6 @@ def arrayEQWithTol(a: np.ndarray, b: np.ndarray, tol: int) -> bool:
     diff[diff >= 255 - tol] = 0
     return (diff <= tol).all()
 
-def toGrayCV2(img: Image.Image) -> cv2.typing.MatLike:
-    return cv2.cvtColor(cv2.cvtColor(np.asarray(img).copy(), cv2.COLOR_RGBA2BGRA), cv2.COLOR_BGRA2GRAY)
-
 def replaceColor(img: np.ndarray, srcColor: tuple[int, int, int], dstColor: tuple[int, int, int]) -> None:
     img[(img == srcColor).all(axis = -1)] = dstColor
 
