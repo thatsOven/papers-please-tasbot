@@ -61,6 +61,10 @@ def halfImage(img: Image.Image) -> Image.Image:
 def doubleImage(img: Image.Image) -> Image.Image:
     return img.resize((img.size[0] * 2, img.size[1] * 2), Image.Resampling.NEAREST)
 
+def cropCenter(img: Image.Image, size: tuple[int, int]) -> Image.Image:
+    base = (img.size[0] // 2 - size[0] // 2, img.size[1] // 2 - size[1] // 2)
+    return img.crop(base + offsetPoint(base, size))
+
 @total_ordering
 class Name:
     def __init__(self, first: str, last: str):

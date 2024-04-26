@@ -64,9 +64,10 @@ class BaseDocument(ABC):
         @TypedGetterProperty
         def wrapper(self):
             fieldName = "_cached__" + fn.__name__
-            try:
+            
+            if hasattr(self, fieldName):
                 val = getattr(self, fieldName)
-            except AttributeError:
+            else:
                 val = fn(self)
                 setattr(self, fieldName, val)
             return val

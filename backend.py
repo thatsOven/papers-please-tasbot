@@ -30,9 +30,11 @@ class Backend:
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__sock.connect(("localhost", port))
 
-        self.tas             = TAS()
         self.currRun: int    = None
         self.runs: list[Run] = None
+
+    def init(self):
+        self.tas = TAS()
 
     if WINDOWS:
         def run(self, method: RunMethod) -> None:
@@ -105,9 +107,10 @@ class Backend:
                     self.runsCommand(runsCom)                        
                 case _:
                     sendCom(self.__sock, BackendMessage.EXCEPTION, f'Unknown command "{com}"'.encode())
-                
+
     def main(self) -> None:
         try:
+            self.init()
             self.__main()
         except Exception:
             sendCom(self.__sock, BackendMessage.PANIC, traceback.format_exc().encode())

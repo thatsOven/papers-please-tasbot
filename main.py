@@ -23,6 +23,8 @@ GUI_FRAMERATE       = 20
 FRAME_SLEEP         = 1 / GUI_FRAMERATE
 GET_RUNS_ATTEMPTS   = 5
 
+STDOUT_REDIRECT = True
+
 PROGRAM_DIR = str(pathlib.Path(__file__).parent.absolute())
 FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS")
     
@@ -178,14 +180,15 @@ class GUI:
                 [sys.executable, "--backend"] if FROZEN else
                 [sys.executable, os.path.join(PROGRAM_DIR, "backend.py")]
             ) + ["--frontend-port", str(self.__sock.getsockname()[1]), "--dir", encode(PROGRAM_DIR + os.sep)], 
-            stdout = subprocess.PIPE
+            stdout = subprocess.PIPE if STDOUT_REDIRECT else None
         )
 
         self.__backendSock = self.__sock.accept()[0]
 
-        self.__queueLock    = Lock()
-        self.__stdoutThread = Thread(target = self.__stdoutReader, daemon = True)
-        self.__stdoutThread.start()
+        self.__queueLock = Lock()
+        if STDOUT_REDIRECT:
+            self.__stdoutThread = Thread(target = self.__stdoutReader, daemon = True)
+            self.__stdoutThread.start()
 
         self.backendCom(FrontendMessage.LOAD_SETTINGS)
         
