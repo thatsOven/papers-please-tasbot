@@ -95,10 +95,12 @@ def parseText(
     textColor: tuple[int, int, int], chars: str, *, 
     endAt = None, misalignFix = False, checkFn = charCheck, lenFn = getCharLength
 ):
+    if np.array_equal(np.asarray(img), np.asarray(bg)): return "" # if fg == bg there's no text
+
     # again... truetype, wtf?
     if   font is STATIC_OBJ.MINI_KYLIE: y = -8
     elif font is STATIC_OBJ._04B03:     y = -2
-    else:                              y = 0
+    else:                               y = 0
     
     if misalignFix: x = max(getAlign(img, bg) - 10, 0) # helps with characters that have blank spaces at beginning
     else:           x = 0

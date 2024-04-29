@@ -17,12 +17,13 @@ class IDSupplement(Document):
     EXPIRATION_TEXT_COLOR = (181, 18,  6)
     TEXT_COLOR            = ( 78, 69, 79)
     LAYOUT = {
-        "label":       getBox(327,  77, 466, 124),
-        "height":      getBox(395, 125, 444, 136),
-        "weight":      getBox(395, 147, 444, 162),
-        "description": getBox(315, 193, 456, 236),
-        "thumb-area":  getBox(369, 244, 456, 312),
-        "expiration":  getBox(387, 339, 452, 350)
+        "label":         getBox(327,  77, 466, 124),
+        "height":        getBox(395, 125, 444, 136),
+        "weight":        getBox(395, 147, 444, 162),
+        "description-0": getBox(315, 193, 456, 204),
+        "description-1": getBox(315, 209, 456, 220),
+        "thumb-area":    getBox(369, 244, 456, 312),
+        "expiration":    getBox(387, 339, 452, 350)
     }
 
     @staticmethod
@@ -62,10 +63,20 @@ class IDSupplement(Document):
             IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.EXPIRATION_TEXT_COLOR
         )
     
-    # TODO make this actually parse description
     @Document.field
-    def description(self) -> Image.Image:
-        return self.docImg.crop(IDSupplement.LAYOUT["description"])
+    def description(self) -> Description:
+        return Description((
+            parseText(
+                self.docImg.crop(IDSupplement.LAYOUT["description-0"]), IDSupplement.BACKGROUNDS["description-0"],
+                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+                endAt = "  "
+            ) + " " + 
+            parseText(
+                self.docImg.crop(IDSupplement.LAYOUT["description-1"]), IDSupplement.BACKGROUNDS["description-1"],
+                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+                endAt = "  "
+            )
+        ).strip())
     
     # unused
     @Document.field

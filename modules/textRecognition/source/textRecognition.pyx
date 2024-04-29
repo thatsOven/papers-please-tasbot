@@ -106,6 +106,8 @@ cpdef inline str parseText(
     tuple textColor, str chars, 
     object endAt = None, bint misalignFix = False, object checkFn = charCheck, object lenFn = getCharLength
 ):
+    if np.array_equal(np.asarray(img), np.asarray(bg)): return "" # if fg == bg there's no text
+    
     # again... truetype, wtf?
     cdef int y
     if   font is STATIC_OBJ.MINI_KYLIE: y = -8

@@ -13,7 +13,7 @@ from typing      import Callable, ClassVar, NoReturn
 
 from modules.sockets import *
 
-VERSION = "2024.4.26"
+VERSION = "2024.4.29"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"
@@ -140,13 +140,13 @@ class GUI:
         com, args = data
 
         if com in (BackendMessage.EXCEPTION, BackendMessage.PANIC):
-            exc = com == BackendMessage.EXCEPTION
+            panic = com == BackendMessage.PANIC
             self.errorBox(
-                "Exception from backend" if exc else "Backend crashed!",
+                "Backend crashed!" if panic else "Exception from backend",
                 args.decode()
             )
 
-            if not exc:
+            if panic:
                 self.initBackend()
                 self.loadRuns()
         
@@ -202,7 +202,7 @@ class GUI:
             if data is not None: break
         else:
             self.errorBox("Error", f"Unable to get runs from backend after {GET_RUNS_ATTEMPTS} attempts. Closing")
-            self.cleanup()
+            self.__cleanup()
 
         self.runs = eval(data)
 
@@ -355,9 +355,11 @@ class GUI:
         debugCheckbox.pack()
 
         def restartBackend():
+            self.__disable()
             self.backendCom(FrontendMessage.EXIT)
             self.initBackend()
             self.loadRuns()
+            self.__ready()
 
             messagebox.showinfo(title = "Done", message = "Backend was restarted.")
 
@@ -409,7 +411,7 @@ class GUI:
         return fn
 
 if __name__ == "__main__":
-    if "--backend" in sys.argv:
+    if FROZEN and "--backend" in sys.argv:
         import backend
     else:
         gui = None
