@@ -133,7 +133,11 @@ class GUI:
         if data is None:
             self.errorBox(
                 "Unable to receive data",
-                ''.join(traceback.format_exception(exception))
+                (
+                    "Backend connection closed abruptly" 
+                    if exception is None else 
+                    ''.join(traceback.format_exception(exception))
+                )
             )
             return None
         
