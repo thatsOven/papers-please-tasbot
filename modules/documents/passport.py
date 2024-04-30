@@ -7,6 +7,7 @@ from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
+from modules.faceRecognition    import Face, FaceType
 from modules.documents.document import BaseDocument, Document, convertBox, getBox
 from modules.utils              import *
 
@@ -155,6 +156,12 @@ class Passport(BaseDocument):
         else:
             return Sex(np.array_equal(Passport.TAS.SEX_F_GENERIC,  np.asarray(self.docImg.crop(self.type_.layout.sex))))
     
+    # check note in faceRecognition.py
+    @Document.field
+    def face(self) -> Face:
+        return Face.parse(self.docImg.crop(self.type_.layout.picture), FaceType.PASSPORT_PICTURE)
+    
+    # TODO remove this and replace with face.sex
     def isSexWrong(self):
         # this actually doesn't cover all cases, cause the game really wants you to assume the person's sex
         # but again, even if i wanted to do this, i have no system for face recognition.

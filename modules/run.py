@@ -57,7 +57,7 @@ class Run(ABC):
         return self.tas.date >= self.tas.DAY_28 and doc.type_.nation == Nation.ARSTOTZKA
 
     def checkAccessPermitDiscrepancies(self, doc: AccessPermit) -> bool:
-        if self.tas.allowWrongWeight and self.tas.weight != doc.weight:
+        if self.tas.allowWrongWeight and self.tas.person.weight != doc.weight:
             self.tas.wrongWeight = True
             return False
         
@@ -70,7 +70,7 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.weight != doc.weight:
+        if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(AccessPermit.LAYOUT["weight"])))
             self.tas.click(centerOf(WEIGHT_AREA))
@@ -156,12 +156,12 @@ class Run(ABC):
         return False
     
     def checkArstotzkanIDDiscrepancies(self, doc: ArstotzkanID) -> bool:
-        if self.tas.allowWrongWeight and self.tas.weight != doc.weight:
+        if self.tas.allowWrongWeight and self.tas.person.weight != doc.weight:
             self.tas.wrongWeight = True
             return False
         
         if self.tas.date < self.tas.DAY_18:
-            if doc.district == District.UNKNOWN or self.tas.weight != doc.weight:
+            if doc.district == District.UNKNOWN or self.tas.person.weight != doc.weight:
                 return True
             
             if self.tas.ID_CHECK:
@@ -195,7 +195,7 @@ class Run(ABC):
             self.tas.skipReason = True
             return True
         
-        if self.tas.weight != doc.weight:
+        if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["weight"])))
             self.tas.click(centerOf(WEIGHT_AREA))
@@ -426,7 +426,7 @@ class Run(ABC):
         return doc.date != self.tas.date
     
     def checkGrantOfAsylumDiscrepancies(self, doc: GrantOfAsylum) -> bool:
-        if self.tas.allowWrongWeight and self.tas.weight != doc.weight:
+        if self.tas.allowWrongWeight and self.tas.person.weight != doc.weight:
             self.tas.wrongWeight = True
             return False
         
@@ -439,7 +439,7 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.weight != doc.weight:
+        if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(textFieldOffset(GrantOfAsylum.LAYOUT["weight"][:2])))
             self.tas.click(centerOf(WEIGHT_AREA))
@@ -525,14 +525,14 @@ class Run(ABC):
         return False
     
     def checkIDSupplementDiscrepancies(self, doc: IDSupplement) -> bool:
-        if self.tas.allowWrongWeight and self.tas.weight != doc.weight:
+        if self.tas.allowWrongWeight and self.tas.person.weight != doc.weight:
             self.tas.wrongWeight = True
             return False
         
         if self.tas.date < self.tas.DAY_18:
             if (
                 doc.expiration <= self.tas.date or
-                self.tas.weight != doc.weight
+                self.tas.person.weight != doc.weight
             ): return True
 
             if self.tas.APPEARANCE_HEIGHT_CHECK:
@@ -571,7 +571,7 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.weight != doc.weight:
+        if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(IDSupplement.LAYOUT["weight"])))
             self.tas.click(centerOf(WEIGHT_AREA))

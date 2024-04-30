@@ -40,7 +40,6 @@ class AllEndings(Run):
 
         # "it was a mistake to open this checkpoint"
         self.tas.nextPartial() 
-        time.sleep(4)
 
         for _ in range(7):
             self.tas.day1Check()
@@ -73,7 +72,7 @@ class AllEndings(Run):
         self.tas.passportOnlyDeny() 
 
         # process last person and wait
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.tas.day2Check(wrong = ending1)
         self.tas.waitForSleepButton()
         
@@ -98,12 +97,11 @@ class AllEndings(Run):
 
         # jorji with no passport
         self.tas.nextPartial()
-        time.sleep(4)
         self.tas.noPassport(backToIndex = False)
 
         self.tas.day3Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day3Check(): pass
 
         # deny food, heat, and medicines, except for wife
@@ -128,7 +126,7 @@ class AllEndings(Run):
 
         self.tas.day4Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day4Check(): pass
 
         # deny food, heat, and medicines, except for wife
@@ -153,7 +151,7 @@ class AllEndings(Run):
         self.tas.multiDocAction(True)
         self.tas.passportOnlyDeny()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day4Check(): pass
 
         self.tas.waitForAllTicks()
@@ -172,7 +170,7 @@ class AllEndings(Run):
         self.tas.multiDocAction(False)
         self.tas.multiDocAction(True) # attack
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.tas.day6Check() # last check before attack for money
         
         self.tas.waitForSleepButton()
@@ -186,7 +184,7 @@ class AllEndings(Run):
             self.tas.day6Check()
             self.tas.day6Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day6Check(): pass
 
         self.tas.dayEnd()
@@ -205,7 +203,7 @@ class AllEndings(Run):
             
         self.tas.multiDocAction(True)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day8Check(): pass
 
         self.tas.dayEnd()
@@ -221,8 +219,7 @@ class AllEndings(Run):
 
         # calensk
         self.tas.nextPartial()
-        self.tas.weight = 0 # not None so the next check doesn't trip
-        time.sleep(4)
+        self.tas.person.weight = 0 # not None so the next check doesn't trip
 
         self.tas.multiDocAction(False)
         self.tas.multiDocAction(False)
@@ -258,7 +255,7 @@ class AllEndings(Run):
         self.tas.lastGiveArea = tmp
         self.tas.multiDocAction(True, nextCheck = False) 
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day8Check(): pass
 
@@ -269,7 +266,6 @@ class AllEndings(Run):
 
         # supervisor (just wait, basically)
         self.tas.waitForGiveAreaChange(sleep = False)
-        self.tas.waitForDoorChange()
 
         self.tas.day8Check()
         self.tas.day8Check()
@@ -287,7 +283,7 @@ class AllEndings(Run):
         self.tas.day8Check()
         self.tas.day8Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day8Check(): pass
 
         self.tas.dayEnd()
@@ -301,7 +297,6 @@ class AllEndings(Run):
 
         # calensk (just wait)
         self.tas.nextPartial()
-        time.sleep(4)
         
         self.tas.multiDocAction(False)
         self.tas.passportOnlyDeny() # ezic
@@ -309,7 +304,7 @@ class AllEndings(Run):
         self.tas.multiDocAction(False)
         self.tas.ezicMessenger()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day8Check(): pass
 
@@ -348,7 +343,6 @@ class AllEndings(Run):
         self.tas.moveTo(PAPER_SCAN_POS)
         self.tas.dragTo(PAPER_POS)
         self.tas.giveAllGiveAreaDocs(before)
-        self.tas.waitForDoorChange()
 
         self.tas.multiDocAction(False)
         self.tas.multiDocAction(False)
@@ -358,7 +352,7 @@ class AllEndings(Run):
         self.tas.multiDocAction(True)
         self.tas.multiDocAction(True) # attack
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.tas.day8Check() # last check before attack for money
 
         self.tas.waitForSleepButton()
@@ -380,7 +374,6 @@ class AllEndings(Run):
 
         # calensk (just wait)
         self.tas.nextPartial()
-        time.sleep(4)
 
         for _ in range(2):
             if safe: self.tas.day13Check()
@@ -395,7 +388,7 @@ class AllEndings(Run):
         self.setupFastChecks()
         self.tas.day13Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day13Check(): pass
 
         self.tas.dayEnd()
@@ -432,7 +425,7 @@ class AllEndings(Run):
 
         self.tas.multiDocAction(ezic, force = True) # ezic agent
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day13Check(): pass
 
@@ -464,7 +457,7 @@ class AllEndings(Run):
         self.tas.multiDocAction(False)
         self.tas.multiDocAction(False)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day13Check(): pass
 
@@ -476,8 +469,7 @@ class AllEndings(Run):
 
         # calensk (just wait)
         self.tas.nextPartial()
-        self.tas.weight = 0 # not None so the next check doesn't trip
-        time.sleep(4)
+        self.tas.person.weight = 0 # not None so the next check doesn't trip
 
         self.tas.multiDocAction(False)
         self.tas.multiDocAction(False)
@@ -501,8 +493,7 @@ class AllEndings(Run):
 
         # sergiu (just wait)
         self.tas.nextPartial()
-        self.tas.weight = 0 # not None so the next check doesn't trip
-        time.sleep(4)
+        self.tas.person.weight = 0 # not None so the next check doesn't trip
 
         self.tas.day13Check()
         self.tas.ezicMessenger()
@@ -516,7 +507,7 @@ class AllEndings(Run):
         if ezic: self.tas.passportOnlyAllow()
         else:    self.tas.passportOnlyDeny()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day13Check(): pass
 
         self.tas.dayEnd()
@@ -553,7 +544,7 @@ class AllEndings(Run):
         self.tas.noPictureCheck(self.tas.day18Check)
         self.tas.day18Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day18Check(): pass
 
         self.tas.dayEnd()
@@ -563,14 +554,12 @@ class AllEndings(Run):
 
         if banner:
             # put arskickers pennant on wall
-            self.tas.click(SHUTTER_LEVER)
-            time.sleep(SHUTTER_OPEN_TIME)
+            self.tas.openShutter()
             self.tas.moveTo((550, 260))
             self.tas.dragTo(PERSON_POS)
 
         # supervisor (just wait, basically)
         self.tas.waitForGiveAreaChange(sleep = False)
-        self.tas.waitForDoorChange()
 
         self.tas.multiDocAction(True)
 
@@ -658,7 +647,7 @@ class AllEndings(Run):
         for _ in range(5):
             self.tas.multiDocAction(True)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day21Check(): pass
 
@@ -706,7 +695,7 @@ class AllEndings(Run):
         for _ in range(5):
             self.tas.multiDocAction(True)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         self.setupFastChecks()
         while self.tas.day21Check(): pass
 
@@ -729,7 +718,7 @@ class AllEndings(Run):
             self.tas.detain = True    
             self.tas.noPictureCheck(self.tas.day21Check)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day21Check(): pass
 
         if not bills:
@@ -800,10 +789,8 @@ class AllEndings(Run):
             time.sleep(PASSPORT_DRAWER_CLOSE_TIME)
             # allow
             self.tas.passportOnlyAllow(nextCheck = False) 
-        else:
-            time.sleep(4)
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day27Check(): pass
 
         if not bills:
@@ -858,7 +845,6 @@ class AllEndings(Run):
         self.tas.daySetup()
 
         # vonel (just wait)
-        self.tas.waitForDoorChange()
 
         self.tas.day27Check()
         
@@ -882,11 +868,10 @@ class AllEndings(Run):
 
         # father (just wait)
         self.tas.next()
-        time.sleep(4)
 
         self.tas.day27Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day27Check(): pass
 
         self.tas.dayEnd()
@@ -896,16 +881,12 @@ class AllEndings(Run):
 
         if familyPic:
             # put family picture on wall
-            self.tas.click(SHUTTER_LEVER)
-            time.sleep(SHUTTER_OPEN_TIME)
+            self.tas.openShutter()
             self.tas.moveTo((550, 270))
             self.tas.dragTo(PERSON_POS)
             return
         
         # supervisor (just wait)
-        self.tas.waitForDoorChange()
-        time.sleep(4)
-        self.tas.waitForDoorChange()
 
         self.tas.day27Check()
 
@@ -930,8 +911,7 @@ class AllEndings(Run):
 
         # father
         self.tas.nextPartial()
-        if givePhoto: time.sleep(4) # just wait
-        else:
+        if not givePhoto: 
             # give picture back
             self.tas.moveTo((435, 400))
             self.tas.dragToWithGive(PERSON_POS)
@@ -939,7 +919,7 @@ class AllEndings(Run):
         self.tas.day27Check()
         self.tas.day27Check()
 
-        self.tas.checkHorn = True
+        self.tas.checkDayEnd = True
         while self.tas.day27Check(): pass
 
         self.tas.dayEnd()

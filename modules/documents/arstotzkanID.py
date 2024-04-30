@@ -7,6 +7,7 @@ from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
+from modules.faceRecognition    import Face, FaceType
 from modules.documents.document import Document, getBox
 from modules.utils              import *
 
@@ -101,6 +102,11 @@ class ArstotzkanID(Document):
             ArstotzkanID.TAS.FONTS["mini-kylie"], ArstotzkanID.TEXT_COLOR, WEIGHT_CHARS,
             endAt = "kg"
         )[:-2])
+    
+    # check note in faceRecognition.py
+    @Document.field
+    def face(self) -> Face:
+        return Face.parse(self.docImg.crop(ArstotzkanID.LAYOUT["picture"]), FaceType.ID_PICTURE)
 
     def __repr__(self):
         return f"""==- Arstotzkan ID -==
@@ -108,4 +114,5 @@ name:     {self.name}
 birth:    {self.birth}
 district: {self.district}
 height:   {self.height}
-weight:   {self.weight}"""
+weight:   {self.weight}
+face:     {self.face}"""

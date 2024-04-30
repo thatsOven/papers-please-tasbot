@@ -8,6 +8,7 @@ from modules.constants.other    import *
 from modules.documents.document import Document, getBox
 from modules.documents.passport import Nation
 from modules.textRecognition    import parseText, parseDate
+from modules.faceRecognition    import Face, FaceType
 from modules.utils              import *
 
 class GrantOfAsylum(Document):
@@ -113,6 +114,11 @@ class GrantOfAsylum(Document):
     def sealArea(self) -> Image.Image:
         return self.docImg.crop(GrantOfAsylum.LAYOUT["seal-area"])
     
+    # check note in faceRecognition.py
+    @Document.field
+    def face(self) -> Face:
+        return Face.parse(self.docImg.crop(GrantOfAsylum.LAYOUT["picture"]), FaceType.GRANT_PICTURE)
+    
     # unused for now
     @Document.field
     def fingerprints(self) -> Image.Image:
@@ -133,4 +139,4 @@ birth:      {self.birth}
 height:     {self.height}
 weight:     {self.weight}
 expiration: {self.expiration}
-"""
+face:       {self.face}"""

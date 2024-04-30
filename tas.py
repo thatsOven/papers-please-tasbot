@@ -22,8 +22,7 @@
 
 # **TODO**
 # - skip end menu fade on endings
-# - check for end of day via day duration instead of using "next!" bubble
-# - try to implement picture/face recognition and height recognition
+# - check for end of day via day duration instead of using sleep button
 # - figure out occasional parsing errors in transcription and text recognition rare bugs
 # - make methods to handle special encounters in different ways
 # - maybe make a simple scripting language for runs
@@ -44,7 +43,9 @@ from modules.constants.other  import *
 from modules.utils            import *
 
 from modules.textRecognition          import STATIC_OBJ, parseText, digitCheck, digitLength
+from modules.faceRecognition          import Face
 from modules.transcription            import Transcription
+from modules.person                   import Person
 from modules.documentStack            import DocumentStack, TASException
 from modules.documents.document       import Document, BaseDocument
 from modules.documents.entryTicket    import EntryTicket
@@ -137,7 +138,7 @@ class TAS:
     FONTS: ClassVar[dict[str, ImageFont.FreeTypeFont | dict[str, np.ndarray]]] = None
     NAMES: ClassVar[dict[str, dict[Sex, set[str]]]]                            = None
 
-    checkHorn: bool
+    checkDayEnd: bool
     allowWrongWeight: bool
     wrongWeight: bool
     skipReason: bool
@@ -149,13 +150,14 @@ class TAS:
     detain: bool
     skipGive: bool
     needObri: int
+    shutter: bool
     sTime: float | None
     endingsTime: dict[int, float]
-    weight: int | None
     lastGiveArea: np.ndarray | None
     wanted: list[tuple[int, int]]
     currRun: "Run"
 
+    person:        Person
     documentStack: DocumentStack
     transcription: Transcription
 
@@ -166,7 +168,7 @@ class TAS:
         if WINDOWS: self.hwnd   = None
         else:       self.winPos = None
 
-        self.checkHorn = False
+        self.checkDayEnd = False
 
         self.allowWrongWeight = False
         self.wrongWeight      = False
@@ -187,7 +189,7 @@ class TAS:
         self.skipGive = False
         self.needObri = 0
 
-        self.weight       = None
+        self.shutter      = False
         self.lastGiveArea = None
         self.date         = None
 
@@ -198,6 +200,7 @@ class TAS:
 
         self.currRun = None
         
+        self.person        = Person()
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
 
@@ -447,12 +450,17 @@ class TAS:
         STATIC_OBJ.MINI_KYLIE = TAS.FONTS["mini-kylie"]
         STATIC_OBJ._04B03     = TAS.FONTS["04b03"]
 
+        Face.TAS          = TAS
         Passport.TAS      = TAS
         Document.TAS      = TAS
         BaseDocument.TAS  = TAS
         Transcription.TAS = TAS
-        Transcription.load()
 
+        logger.info("Initializing face recognition system...")
+        Face.load()
+        logger.info("Initializing Transcription...")
+        Transcription.load()
+    
         for document in TAS.DOCUMENTS:
             logger.info(f"Initializing {document.__name__}...")
             document.TAS = TAS
@@ -555,7 +563,7 @@ class TAS:
                 if pg.locate(TAS.GIVE_BANNER, screen.crop(PERSON_AREA), confidence = 0.5) is not None: break
 
                 # needed in some edge cases so it doesn't get stuck
-                if self.checkHorn and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: break 
+                if self.checkDayEnd and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: break 
 
                 pos[0] = at[0] + math.sin(th[0]) * DRAG_TO_WITH_GIVE_AMPLITUDE[0] - DRAG_TO_WITH_GIVE_POS_OFFS[0]
                 pos[1] = at[1] + math.sin(th[1]) * DRAG_TO_WITH_GIVE_AMPLITUDE[1] - DRAG_TO_WITH_GIVE_POS_OFFS[1]
@@ -564,27 +572,6 @@ class TAS:
                 self.moveTo(pos)
 
         pg.mouseUp()
-
-    def waitForDoorChange(self) -> None:
-        """Waits for a change on screen in the areas directly outside the booth to the left or right.
-
-        If the "checkHorn" flag is set, will also stop waiting if the Sleep button appears.
-        """
-        screen = self.getScreen()
-        before = (
-            np.asarray(screen.crop(EXIT_AREAS[0])),
-            np.asarray(screen.crop(EXIT_AREAS[1])),
-        )
-
-        while True:
-            screen = self.getScreen()
-            # needed in some edge cases so it doesn't get stuck
-            if self.checkHorn and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: break 
-
-            if not (
-                np.array_equal(before[0], np.asarray(screen.crop(EXIT_AREAS[0]))) and
-                np.array_equal(before[1], np.asarray(screen.crop(EXIT_AREAS[1])))
-            ): break
 
     def waitForAreaChange(self, area: tuple[int, int, int, int]) -> np.ndarray:
         """Wait for a change in the given screen area, continuously scanning that area of the screen.
@@ -642,57 +629,81 @@ class TAS:
         while pg.locate(TAS.WANTED_CRIMINALS, self.getScreen()) is None:
             self.click(BULLETIN_NEXT_BUTTON)
 
+    def openShutter(self, *, wait = True) -> None:
+        if not self.shutter:
+            self.shutter = True
+            self.click(SHUTTER_LEVER)
+        
+        if wait:
+            time.sleep(SHUTTER_OPEN_TIME)
+
+    def closeShutter(self, *, wait = True) -> None:
+        if self.shutter:
+            self.shutter = False
+            self.click(SHUTTER_LEVER)
+
+        if wait:
+            time.sleep(SHUTTER_OPEN_TIME)
+
     def nextPartial(self) -> bool:
+        # TODO rewrite this doc to explain new behavior
         """Waits for a change in the areas outside the door, then clicks the horn. Does not wait for entrant's arrival.
 
         If "weight" is None, indicating this is the first entrant, prepares the bulletin, flipping to the wanted
         criminals change if "WANTED_CHECK" is True, or otherwise moving the bulletin to its slot on the left desk.
         If "checkHorn" is True, checks the area above the horn for the "Next" message bubble and waits for the end of
         day sleep button if it did not appear.
+        Once the entrant arrives, saves a picture of them.
 
         Returns:
             True if the next entrant was called, False it waited for the sleep button.
         """
+
         # if weight is none, this is first person: no need to wait
-        if self.weight is None: 
+        if self.person.weight is None:
             if TAS.WANTED_CHECK and self.date >= TAS.DAY_14:
                 self.goToWantedCriminals()
                 self.moveTo(INITIAL_BULLETIN_POS)
                 self.dragTo(RIGHT_BULLETIN_POS)
-                self.wanted = list(WANTED)
-            else: 
-                # the animation confuses the piece of code that waits for the person to give documents
-                # so this manually moves the bulletin in place when the day starts
-                self.moveTo(INITIAL_BULLETIN_POS)
-                self.dragTo(BULLETIN_POS)
+                self.wanted = list(WANTED) 
+            
+            self.click(HORN)
+            self.openShutter(wait = False) # make sure shutter is open so you can quickly detect first person
+            self.moveTo(HORN) # move cursor away so face recognition doesn't get confused
         else:
-            self.waitForDoorChange()
+            # waits for "next!" bubble to appear
+            while True:
+                self.click(HORN)
+                screen = self.getScreen()
+
+                if np.array_equal(TAS.NEXT_BUBBLE, np.asarray(screen.crop(NEXT_BUBBLE_AREA))): break
+                if self.checkDayEnd and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: return False 
+
+        # wait for person to appear (if the palette is detected, the person is there)
+        while True:
+            screen = self.getScreen()
+            appearance = screen.crop(PERSON_AREA)
+
+            if Face.getPalette(appearance) is not None: break
+            if self.checkDayEnd and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: return False 
 
         self.documentStack.reset()
         self.transcription.reset()
+        
+        self.person.reset(appearance)
+        if TAS.SETTINGS["debug"]: logger.info(self.person)
 
-        if self.checkHorn:
-            before = np.asarray(self.getScreen().crop(HORN_MESSAGE_AREA))
-            self.click(HORN)
-            time.sleep(HORN_MESSAGE_APPEAR_TIME)
-            msgImg = bgFilter(before, np.asarray(self.getScreen().crop(HORN_MESSAGE_AREA)))
-
-            if np.array_equal(TAS.NEXT_BUBBLE, msgImg): return True
-            else:
-                self.waitForSleepButton()
-                return False
-        else:
-            self.click(HORN)
-            return True
+        return True
 
     def next(self) -> bool:
+        # TODO rewrite this doc to explain new behavior
         """Waits for a change in the areas outside the door, clicks the horn, and waits for documents to appear.
 
         If "weight" is None, indicating this is the first entrant, prepares the bulletin, flipping to the wanted
         criminals change if "WANTED_CHECK" is True, or otherwise moving the bulletin to its slot on the left desk.
         If "checkHorn" is True, checks the area above the horn for the "Next" message bubble and waits for the end of
         day sleep button if it did not appear.
-        Once the entrant arrives and presents their documents, records their weight.
+        Once the entrant arrives, saves a picture of them, waits for them to present their documents, then records their weight.
 
         Returns:
             True if it waited for the sleep button, False if the next entrant was called.
@@ -713,7 +724,7 @@ class TAS:
                 self.waitForSleepButton()
                 return True
             
-            self.weight = int(weightCheck)
+            self.person.weight = int(weightCheck)
             self.wrongWeight = False
             return False
         
@@ -780,15 +791,16 @@ class TAS:
         """Sets up for the day by clicking "Walk to work" and setting flags to their default state."""
         self.click(INTRO_BUTTON)
         time.sleep(DAY_DELAY)
-        self.checkHorn        = False
+        self.person.reset()
+        self.checkDayEnd      = False
         self.allowWrongWeight = False
         self.doConfiscate     = True
-        self.weight           = None
+        self.shutter          = False
         self.wanted           = []
 
     def dayEnd(self) -> None:
         """Ends the day by clicking the sleep button and incrementing the date."""
-        self.checkHorn = False
+        self.checkDayEnd = False
         self.click(SLEEP_BUTTON)
         time.sleep(MENU_DELAY)
         self.date += timedelta(days = 1)
@@ -982,8 +994,12 @@ class TAS:
                 time.sleep(0.5)
                 self.click(pos)
 
+                # shutter gets closed when you detain, so this ensures it stays open 
+                # for the next entrant for quicker detection
+                self.shutter = False
+                self.openShutter(wait = False)
+
                 self.documentStack.reset() # all documents disappear when you press detain
-                self.waitForDoorChange()   # extra delay when detaining, so we wait for door change twice
                 return True
         return False
 
@@ -1211,7 +1227,7 @@ class TAS:
             if np.array_equal(before, np.asarray(screen.crop(GIVE_AREA))): break
 
             # needed in some edge cases so it doesn't get stuck
-            if self.checkHorn and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: break 
+            if self.checkDayEnd and pg.locate(TAS.BUTTONS["sleep"], screen) is not None: break 
             
             self.moveTo(PAPER_POS)
             self.dragTo(PERSON_POS)
