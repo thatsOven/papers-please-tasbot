@@ -317,6 +317,7 @@ class TAS:
             for x, c in enumerate(DIGITS)
         }
 
+        # TODO remove this once face recognition is ready
         TAS.NAMES = {
             "full":  {Sex.M: None, Sex.F: None},
             "first": {Sex.M: None, Sex.F: None},
@@ -1916,7 +1917,7 @@ class TAS:
             return True
         return False
     
-    def handlePurposeDurationWithReason(self, permitType: type, alignFn: Callable[[tuple[int, int, int, int]], tuple[int, int]]) -> bool:
+    def handlePurposeDurationWithReason(self, permitType: Type[EntryPermit | AccessPermit], alignFn: Callable[[tuple[int, int, int, int]], tuple[int, int]]) -> bool:
         duration = self.transcription.waitFor(self.transcription.getDuration)
         purpose  = self.transcription.getPurpose()
 
