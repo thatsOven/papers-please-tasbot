@@ -2,8 +2,11 @@ import json
 import logging.config
 import os
 import sys
+import time
 import traceback
 import platform
+
+RUN_START_DELAY = 3
 
 WINDOWS = platform.system() == "Windows"
 if WINDOWS:
@@ -97,6 +100,7 @@ class Backend:
                     self.ok()
                 case FrontendMessage.RUN:
                     self.ok()
+                    time.sleep(RUN_START_DELAY)
                     self.run(RunMethod(int.from_bytes(args)))
                     self.ok()
                 case FrontendMessage.LOAD_SETTINGS:

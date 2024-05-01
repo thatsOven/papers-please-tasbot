@@ -8,7 +8,7 @@ from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
 from modules.faceRecognition    import Face, FaceType
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.utils              import *
 
 class District(Enum):
@@ -29,24 +29,23 @@ def getDistrict(name: str) -> District:
 class ArstotzkanID(Document):
     BACKGROUNDS = None
 
-    TABLE_OFFSET        = (259, 139) 
     DISTRICT_TEXT_COLOR = (217, 189, 247)
     TEXT_COLOR          = ( 61,  57,  77)
     LAYOUT = {
-        "label":      getBox(259, 139, 510, 160),
-        "district":   getBox(265, 161, 502, 172),
-        "last-name":  getBox(359, 179, 502, 190),
-        "first-name": getBox(359, 195, 502, 204),
-        "birth":      getBox(403, 219, 470, 228),
-        "height":     getBox(389, 239, 440, 248),
-        "weight":     getBox(389, 259, 440, 270),
-        "picture":    getBox(269, 173, 348, 268)
+        'label': (0, 0, 252, 22),
+        'district': (6, 22, 244, 34),
+        'last-name': (100, 40, 244, 52),
+        'first-name': (100, 56, 244, 66),
+        'birth': (144, 80, 212, 90),
+        'height': (130, 100, 182, 110),
+        'weight': (130, 120, 182, 132),
+        'picture': (10, 34, 90, 130)
     }
 
     @staticmethod
     def load():
         ArstotzkanID.BACKGROUNDS = Document.getBgs(
-            ArstotzkanID.LAYOUT, ArstotzkanID.TABLE_OFFSET, Image.open(
+            ArstotzkanID.LAYOUT, Image.open(
                 os.path.join(ArstotzkanID.TAS.ASSETS, "papers", "arstotzkanID.png")
             ).convert("RGB")
         )

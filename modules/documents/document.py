@@ -3,18 +3,7 @@ from PIL    import Image
 from typing import Self, Type, ClassVar, Callable, TypeVar, Generic, TYPE_CHECKING
 import numpy as np, pyautogui as pg
 
-from modules.utils import bgFilter
-
-def convertBox(box: tuple[int, int, int, int], offset: tuple[int, int]):
-    return (
-        box[0] - offset[0], 
-        box[1] - offset[1], 
-        box[2] - offset[0], 
-        box[3] - offset[1]
-    )
-
-def getBox(x0, y0, x1, y2):
-    return (x0, y0, x1 + 1, y2 + 1)
+from modules.utils import bgFilter, offsetBox
 
 if TYPE_CHECKING:
     from tas import TAS
@@ -27,6 +16,8 @@ class TypedGetterProperty(property, Generic[T]):
 class BaseDocument(ABC):
     TAS: ClassVar[Type["TAS"]] = None # again, circular imports (ugh)
 
+    LAYOUT: dict[str, tuple[int, int, int, int]] = None
+
     @staticmethod
     def load(): 
         raise NotImplementedError
@@ -36,8 +27,8 @@ class BaseDocument(ABC):
         raise NotImplementedError
     
     @staticmethod
-    def getBgs(layout: dict[str, tuple], tableOffset: tuple[int, int], innerTexture: Image.Image) -> dict[str, Image.Image]:
-        return {key: innerTexture.crop(convertBox(box, tableOffset)) for key, box in layout.items()}
+    def getBgs(layout: dict[str, tuple[int, int, int, int]], innerTexture: Image.Image) -> dict[str, Image.Image]:
+        return {key: innerTexture.crop(box) for key, box in layout.items()}
     
     @staticmethod
     def __sealFilter(sealArea: np.ndarray, background: Image.Image, whiteBg: Image.Image) -> np.ndarray:
@@ -73,7 +64,14 @@ class BaseDocument(ABC):
             return val
         return wrapper
     
-    def __init__(self, docImg: Image.Image):
-        self.docImg = docImg
+    def __init__(self, docImg: Image.Image, tableOffs: tuple[int, int]):
+        self.docImg      = docImg
+        self.__tableOffs = tableOffs
+
+    def getTableBox(self, field: str):
+        if self.LAYOUT is None and hasattr(self, "type_") and hasattr(getattr(self, "type_"), "layout"): # for passport class
+            return offsetBox(getattr(self.type_.layout, field), self.__tableOffs)
+        else:
+            return offsetBox(self.LAYOUT[field], self.__tableOffs)            
 
 class Document(BaseDocument): ...

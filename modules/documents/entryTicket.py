@@ -1,7 +1,7 @@
 from PIL import Image
 import os, datetime, pyautogui as pg, numpy as np
 
-from modules.documents.document import Document, getBox, convertBox
+from modules.documents.document import Document
 from modules.textRecognition    import parseDate
 from modules.utils              import doubleImage
 
@@ -10,11 +10,10 @@ class EntryTicket(Document):
     TRACK_IMAGE: Image.Image   = None
     INNER_TEXTURE: Image.Image = None
 
-    TABLE_OFFSET = (245, 159)
-    TEXT_COLOR   = (119, 103, 137)
+    TEXT_COLOR = (119, 103, 137)
     LAYOUT = {
-        "date" : getBox(  0,   0,  66,  11), 
-        "label": getBox(347, 179, 498, 202)
+        "date" : (  0,   0,  67,  12), 
+        "label": (347, 179, 499, 203)
     }
 
     @staticmethod
@@ -24,7 +23,7 @@ class EntryTicket(Document):
         ).convert("RGB")
 
         EntryTicket.INNER_TEXTURE = doubleImage(Image.open(os.path.join(EntryTicket.TAS.ASSETS, "papers", "entryTicket", "inner.png")).convert("RGB"))
-        EntryTicket.LABEL = np.asarray(EntryTicket.INNER_TEXTURE.crop(convertBox(EntryTicket.LAYOUT["label"], EntryTicket.TABLE_OFFSET)))
+        EntryTicket.LABEL = np.asarray(EntryTicket.INNER_TEXTURE.crop(EntryTicket.LAYOUT["label"]))
 
     @staticmethod
     def checkMatch(docImg: Image.Image) -> bool:
@@ -38,7 +37,7 @@ class EntryTicket(Document):
         
         return parseDate(
             self.docImg.crop(trackBox), 
-            EntryTicket.INNER_TEXTURE.crop(convertBox(trackBox, EntryTicket.TABLE_OFFSET)),
+            EntryTicket.INNER_TEXTURE.crop(trackBox),
             EntryTicket.TAS.FONTS["bm-mini"], EntryTicket.TEXT_COLOR
         )
 

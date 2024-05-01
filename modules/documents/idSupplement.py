@@ -17,19 +17,19 @@ class IDSupplement(Document):
     EXPIRATION_TEXT_COLOR = (181, 18,  6)
     TEXT_COLOR            = ( 78, 69, 79)
     LAYOUT = {
-        "label":         getBox(327,  77, 466, 124),
-        "height":        getBox(395, 125, 444, 136),
-        "weight":        getBox(395, 147, 444, 162),
-        "description-0": getBox(315, 193, 456, 204),
-        "description-1": getBox(315, 209, 456, 220),
-        "thumb-area":    getBox(369, 244, 456, 312),
-        "expiration":    getBox(387, 339, 452, 350)
+        'label': (32, 16, 172, 64),
+        'height': (100, 64, 150, 76),
+        'weight': (100, 86, 150, 102),
+        'description-0': (20, 132, 162, 144),
+        'description-1': (20, 148, 162, 160),
+        'thumb-area': (74, 183, 162, 252),
+        'expiration': (92, 278, 158, 290)
     }
 
     @staticmethod
     def load():
         IDSupplement.BACKGROUNDS = Document.getBgs(
-            IDSupplement.LAYOUT, IDSupplement.TABLE_OFFSET, Image.open(
+            IDSupplement.LAYOUT, Image.open(
                 os.path.join(IDSupplement.TAS.ASSETS, "papers", "idSupplement.png")
             ).convert("RGB")
         )

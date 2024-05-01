@@ -17,24 +17,24 @@ class GrantOfAsylum(Document):
     TABLE_OFFSET = (225, 23)
     TEXT_COLOR   = (125, 109, 121)
     LAYOUT = {
-        "seal-area":    getBox(235,  43, 534, 122),
-        "first-name":   getBox(371, 131, 524, 142),
-        "last-name":    getBox(371, 149, 524, 160),
-        "nation":       getBox(407, 179, 524, 190),
-        "number":       getBox(407, 197, 524, 208),
-        "birth":        getBox(427, 215, 492, 226),
-        "height":       getBox(407, 233, 456, 244),
-        "weight":       getBox(407, 251, 524, 266),
-        "fingerprints": getBox(247, 273, 524, 338),
-        "expiration":   getBox(407, 349, 472, 360),
-        "label":        getBox(225, 361, 544, 390),
-        "picture":      getBox(245, 123, 364, 266) 
+        'seal-area': (10, 20, 310, 100),
+        'first-name': (146, 108, 300, 120),
+        'last-name': (146, 126, 300, 138),
+        'nation': (182, 156, 300, 168),
+        'number': (182, 174, 300, 186),
+        'birth': (202, 192, 268, 204),
+        'height': (182, 210, 232, 222),
+        'weight': (182, 228, 300, 244),
+        'fingerprints': (22, 250, 300, 316),
+        'expiration': (182, 326, 248, 338),
+        'label': (0, 338, 320, 368),
+        'picture': (20, 100, 140, 244)
     }
 
     @staticmethod
     def load():
         GrantOfAsylum.BACKGROUNDS = Document.getBgs(
-            GrantOfAsylum.LAYOUT, GrantOfAsylum.TABLE_OFFSET, Image.open(
+            GrantOfAsylum.LAYOUT, Image.open(
                 os.path.join(GrantOfAsylum.TAS.ASSETS, "papers", "grantOfAsylum.png")
             ).convert("RGB")
         )

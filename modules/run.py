@@ -63,7 +63,7 @@ class Run(ABC):
         
         if doc.expiration <= self.tas.date:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(AccessPermit.LAYOUT["expiration"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("expiration"))))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -72,7 +72,7 @@ class Run(ABC):
         
         if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(AccessPermit.LAYOUT["weight"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("weight"))))
             self.tas.click(centerOf(WEIGHT_AREA))
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -95,7 +95,7 @@ class Run(ABC):
 
             # if there's no seal
             if not bgFilter(np.asarray(doc.sealArea), np.asarray(AccessPermit.BACKGROUNDS["seal-area"])).any():
-                self.tas.click(onTable(rightSlot(centerOf(AccessPermit.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["access-permit"]["document-must-have-seal"]))
             else:
                 try:
@@ -104,10 +104,10 @@ class Run(ABC):
                         AccessPermit.BACKGROUNDS["seal-white"]
                     )
                 except:
-                    self.tas.click(onTable(rightSlot(centerOf(AccessPermit.LAYOUT["seal-area"]))))
+                    self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["access-permit"]["document-must-have-seal"]))
                 else:
-                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), AccessPermit.LAYOUT["seal-area"][:2]))))
+                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), doc.getTableBox("seal-area")[:2]))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["access-permit"]["seals"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)
@@ -125,7 +125,7 @@ class Run(ABC):
         
         if self.tas.APPEARANCE_HEIGHT_CHECK:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(AccessPermit.LAYOUT["height"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
             self.tas.click(PERSON_POS)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -138,7 +138,7 @@ class Run(ABC):
                 self.tas.moveTo(PAPER_SCAN_POS)
                 return True
             
-            self.tas.click(onTable(textFieldOffset(AccessPermit.LAYOUT["description"])))
+            self.tas.click(onTable(textFieldOffset(doc.getTableBox("description"))))
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
             time.sleep(INSPECT_TIME)
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -166,7 +166,7 @@ class Run(ABC):
             
             if self.tas.ID_CHECK:
                 self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["picture"])))
+                self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
                 self.tas.click(PERSON_POS)
                 time.sleep(INSPECT_ALPHACHANGE_TIME)
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -179,7 +179,7 @@ class Run(ABC):
                     self.tas.moveTo(PAPER_SCAN_POS)
                     return True
                 
-                self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["height"])))
+                self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
                 time.sleep(INSPECT_TIME)
                 msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -197,7 +197,7 @@ class Run(ABC):
         
         if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["weight"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("weight"))))
             self.tas.click(centerOf(WEIGHT_AREA))
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -218,7 +218,7 @@ class Run(ABC):
 
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(offsetPoint(rightSlot(
-                ArstotzkanID.LAYOUT["district"][:2]
+                doc.getTableBox("district")[:2]
             ), (10, 4))))
             self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["id-card"]["districts"]))
 
@@ -240,7 +240,7 @@ class Run(ABC):
         
         if self.tas.ID_CHECK:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["picture"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             self.tas.click(PERSON_POS)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -253,7 +253,7 @@ class Run(ABC):
                 self.tas.moveTo(PAPER_SCAN_POS)
                 return True
             
-            self.tas.click(onTable(centerOf(ArstotzkanID.LAYOUT["height"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
             time.sleep(INSPECT_TIME)
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -288,7 +288,7 @@ class Run(ABC):
             self.tas.dragTo(LEFT_SCAN_SLOT)
 
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(textFieldOffset(rightSlot(DiplomaticAuth.LAYOUT["access-to-0"][:2]))))
+            self.tas.click(onTable(textFieldOffset(rightSlot(doc.getTableBox("access-to-0")[:2]))))
             self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["diplomatic-auth"]["auth-arstotzka"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)
@@ -320,7 +320,7 @@ class Run(ABC):
                 self.tas.dragTo(LEFT_SCAN_SLOT)
 
                 self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(rightSlot(centerOf(DiplomaticAuth.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["diplomatic-auth"]["document-must-have-seal"]))
 
                 time.sleep(INSPECT_INTERROGATE_TIME)
@@ -344,7 +344,7 @@ class Run(ABC):
                 self.tas.dragTo(RIGHT_SCAN_SLOT)
 
                 self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(leftSlot(centerOf(DiplomaticAuth.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(leftSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(rightSlot(self.tas.getRulebook()["region-map"]["diplomatic-seal"]))
 
                 time.sleep(INSPECT_INTERROGATE_TIME)
@@ -369,7 +369,7 @@ class Run(ABC):
         
         if doc.expiration <= self.tas.date:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(EntryPermit.LAYOUT["expiration"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("expiration"))))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -392,7 +392,7 @@ class Run(ABC):
 
             # if there's no seal
             if not bgFilter(np.asarray(doc.sealArea), np.asarray(EntryPermit.BACKGROUNDS["seal-area"])).any():
-                self.tas.click(onTable(rightSlot(centerOf(EntryPermit.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["entry-permit"]["document-must-have-seal"]))
             else:
                 try:
@@ -401,10 +401,10 @@ class Run(ABC):
                         EntryPermit.BACKGROUNDS["seal-white"]
                     )
                 except:
-                    self.tas.click(onTable(rightSlot(centerOf(EntryPermit.LAYOUT["seal-area"]))))
+                    self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["entry-permit"]["document-must-have-seal"]))
                 else:
-                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), EntryPermit.LAYOUT["seal-area"][:2]))))
+                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), doc.getTableBox("seal-area")[:2]))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["entry-permit"]["seals"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)
@@ -432,7 +432,7 @@ class Run(ABC):
         
         if doc.expiration <= self.tas.date:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(GrantOfAsylum.LAYOUT["expiration"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("expiration"))))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -441,7 +441,7 @@ class Run(ABC):
         
         if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(textFieldOffset(GrantOfAsylum.LAYOUT["weight"][:2])))
+            self.tas.click(onTable(textFieldOffset(doc.getTableBox("weight")[:2])))
             self.tas.click(centerOf(WEIGHT_AREA))
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -464,7 +464,7 @@ class Run(ABC):
 
             # if there's no seal
             if not bgFilter(np.asarray(doc.sealArea), np.asarray(GrantOfAsylum.BACKGROUNDS["seal-area"])).any():
-                self.tas.click(onTable(rightSlot(centerOf(GrantOfAsylum.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["grant-asylum"]["document-must-have-seal"]))
             else:
                 try:
@@ -473,10 +473,10 @@ class Run(ABC):
                         GrantOfAsylum.BACKGROUNDS["seal-white"]
                     )
                 except:
-                    self.tas.click(onTable(rightSlot(centerOf(GrantOfAsylum.LAYOUT["seal-area"]))))
+                    self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["grant-asylum"]["document-must-have-seal"]))
                 else:
-                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), GrantOfAsylum.LAYOUT["seal-area"][:2]))))
+                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), doc.getTableBox("seal-area")[:2]))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["grant-asylum"]["seals"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)
@@ -494,7 +494,7 @@ class Run(ABC):
         
         if self.tas.APPEARANCE_HEIGHT_CHECK:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(GrantOfAsylum.LAYOUT["picture"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             self.tas.click(PERSON_POS)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -507,7 +507,7 @@ class Run(ABC):
                 self.tas.moveTo(PAPER_SCAN_POS)
                 return True
             
-            self.tas.click(onTable(textFieldOffset(GrantOfAsylum.LAYOUT["height"])))
+            self.tas.click(onTable(textFieldOffset(doc.getTableBox("height"))))
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
             time.sleep(INSPECT_TIME)
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -537,7 +537,7 @@ class Run(ABC):
 
             if self.tas.APPEARANCE_HEIGHT_CHECK:
                 self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(centerOf(IDSupplement.LAYOUT["height"])))
+                self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
                 self.tas.click(PERSON_POS)
                 time.sleep(INSPECT_ALPHACHANGE_TIME)
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -550,7 +550,7 @@ class Run(ABC):
                     self.tas.moveTo(PAPER_SCAN_POS)
                     return True
                 
-                self.tas.click(onTable(textFieldOffset(IDSupplement.LAYOUT["description"])))
+                self.tas.click(onTable(textFieldOffset(doc.getTableBox("description-0")[:2])))
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
                 time.sleep(INSPECT_TIME)
                 msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -564,7 +564,7 @@ class Run(ABC):
     
         if doc.expiration <= self.tas.date:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(IDSupplement.LAYOUT["expiration"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("expiration"))))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -573,7 +573,7 @@ class Run(ABC):
         
         if self.tas.person.weight != doc.weight:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(IDSupplement.LAYOUT["weight"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("weight"))))
             self.tas.click(centerOf(WEIGHT_AREA))
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -582,7 +582,7 @@ class Run(ABC):
         
         if self.tas.APPEARANCE_HEIGHT_CHECK:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(IDSupplement.LAYOUT["height"])))
+            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
             self.tas.click(PERSON_POS)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -595,7 +595,7 @@ class Run(ABC):
                 self.tas.moveTo(PAPER_SCAN_POS)
                 return True
             
-            self.tas.click(onTable(textFieldOffset(IDSupplement.LAYOUT["description"])))
+            self.tas.click(onTable(textFieldOffset(doc.getTableBox("description-0")[:2])))
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
             time.sleep(INSPECT_TIME)
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
@@ -630,7 +630,7 @@ class Run(ABC):
                 (self.tas.DAY4_PICTURE_CHECK and self.tas.date >  self.tas.DAY_3)
             ):
                 self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+                self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
                 self.tas.click(PERSON_POS)
                 time.sleep(INSPECT_ALPHACHANGE_TIME)
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -646,7 +646,7 @@ class Run(ABC):
             if self.tas.WANTED_CHECK and self.tas.date >= self.tas.DAY_14 and len(self.tas.wanted) != 0:
                 self.tas.click(INSPECT_BUTTON)
                 self.tas.click(self.tas.wanted[0])
-                self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+                self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
                 time.sleep(INSPECT_ALPHACHANGE_TIME)
                 before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
                 time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
@@ -684,7 +684,7 @@ class Run(ABC):
                     return False
                 
                 self.tas.click(self.tas.wanted[2])
-                self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+                self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
                 time.sleep(INSPECT_TIME)
                 msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
                 self.tas.click(INSPECT_BUTTON)
@@ -713,7 +713,7 @@ class Run(ABC):
             self.tas.dragTo(LEFT_SCAN_SLOT)
 
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(rightSlot(centerOf(doc.type_.layout.label))))
+            self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("label")))))
 
             if doc.type_.nation == Nation.IMPOR:
                 self.tas.click(leftSlot(self.tas.getRulebook()["basic-rules"]["no-entry-from-impor"]))
@@ -735,7 +735,7 @@ class Run(ABC):
         
         if doc.expiration <= self.tas.date:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(doc.type_.layout.expiration)))
+            self.tas.click(onTable(centerOf(doc.getTableBox("expiration"))))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -744,7 +744,7 @@ class Run(ABC):
         
         if doc.isSexWrong():
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(doc.type_.layout.sex)))
+            self.tas.click(onTable(centerOf(doc.getTableBox("sex"))))
             self.tas.click(PERSON_POS)
 
             if self.tas.interrogateFailsafe():
@@ -768,7 +768,7 @@ class Run(ABC):
             self.tas.dragTo(LEFT_SCAN_SLOT)
 
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(textFieldOffset(rightSlot(doc.type_.layout.city[:2]))))
+            self.tas.click(onTable(textFieldOffset(rightSlot(doc.getTableBox("city")[:2]))))
             self.tas.click(leftSlot(self.tas.getRulebook()["region-map"]["issuing-cities"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)
@@ -786,7 +786,7 @@ class Run(ABC):
 
         if self.tas.DAY4_PICTURE_CHECK:
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+            self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             self.tas.click(PERSON_POS)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
@@ -805,7 +805,7 @@ class Run(ABC):
         if self.tas.WANTED_CHECK and len(self.tas.wanted) != 0:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(self.tas.wanted[0])
-            self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+            self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             time.sleep(INSPECT_ALPHACHANGE_TIME)
             before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
             time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
@@ -843,7 +843,7 @@ class Run(ABC):
                 return False
             
             self.tas.click(self.tas.wanted[2])
-            self.tas.click(onTable(centerOf(doc.type_.layout.picture)))
+            self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             time.sleep(INSPECT_TIME)
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
             
@@ -866,8 +866,8 @@ class Run(ABC):
                 if vax.date + relativedelta(years = 3) <= self.tas.date:
                     self.tas.click(INSPECT_BUTTON)
                     self.tas.click(onTable(centerOf(
-                        VaxCert.LAYOUT["vax-0"][:2] + offsetPoint(
-                            VaxCert.LAYOUT["vax-0"][:2], 
+                        doc.getTableBox("vax-0")[:2] + offsetPoint(
+                            doc.getTableBox("vax-0")[:2], 
                             Vaccine.LAYOUT["date"][2:]
                         )
                     )))
@@ -892,7 +892,7 @@ class Run(ABC):
         self.tas.dragTo(LEFT_SCAN_SLOT)
 
         self.tas.click(INSPECT_BUTTON)
-        self.tas.click(onTable(rightSlot(textFieldOffset(offsetPoint(VaxCert.LAYOUT["vax-0"][:2], Vaccine.LAYOUT["disease"][:2])))))
+        self.tas.click(onTable(rightSlot(textFieldOffset(offsetPoint(doc.getTableBox("vax-0")[:2], Vaccine.LAYOUT["disease"][:2])))))
         self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["vax-cert"]["polio-vax-required"]))
         time.sleep(INSPECT_INTERROGATE_TIME)
         self.tas.interrogate()
@@ -914,7 +914,7 @@ class Run(ABC):
         
         if doc.until < self.tas.date + PERMIT_DURATIONS["1 MONTH"]: 
             self.tas.click(INSPECT_BUTTON)
-            self.tas.click(centerOf(WorkPass.LAYOUT["until"]))
+            self.tas.click(centerOf(doc.getTableBox("until")))
             self.tas.click(CLOCK_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
@@ -937,7 +937,7 @@ class Run(ABC):
 
             # if there's no seal
             if not bgFilter(np.asarray(doc.sealArea), np.asarray(WorkPass.BACKGROUNDS["seal-area"])).any():
-                self.tas.click(onTable(rightSlot(centerOf(WorkPass.LAYOUT["seal-area"]))))
+                self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                 self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["work-pass"]["document-must-have-seal"]))
             else:
                 try:
@@ -946,10 +946,10 @@ class Run(ABC):
                         WorkPass.BACKGROUNDS["seal-white"]
                     )
                 except:
-                    self.tas.click(onTable(rightSlot(centerOf(WorkPass.LAYOUT["seal-area"]))))
+                    self.tas.click(onTable(rightSlot(centerOf(doc.getTableBox("seal-area")))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["work-pass"]["document-must-have-seal"]))
                 else:
-                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), WorkPass.LAYOUT["seal-area"][:2]))))
+                    self.tas.click(onTable(rightSlot(offsetPoint(textFieldOffset(pos), doc.getTableBox("seal-area")[:2]))))
                     self.tas.click(leftSlot(self.tas.getRulebook()["documents"]["work-pass"]["seals"]))
 
             time.sleep(INSPECT_INTERROGATE_TIME)

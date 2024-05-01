@@ -13,26 +13,25 @@ from modules.utils              import *
 class AccessPermit(Document):
     BACKGROUNDS = None
 
-    TABLE_OFFSET = (239, 15) 
-    TEXT_COLOR   = (105, 103, 137)
+    TEXT_COLOR = (105, 103, 137)
     LAYOUT = {
-        "seal-area":   getBox(259,  35, 512, 122),
-        "name":        getBox(269, 123, 502, 134),
-        "nation":      getBox(271, 167, 380, 178),
-        "number":      getBox(397, 167, 512, 178),
-        "purpose":     getBox(271, 211, 380, 222),
-        "duration":    getBox(397, 211, 512, 222),
-        "height":      getBox(271, 255, 320, 266),
-        "weight":      getBox(397, 255, 445, 270),
-        "description": getBox(271, 299, 502, 310),
-        "expiration":  getBox(417, 343, 482, 354),
-        "label":       getBox(245, 355, 526, 400)
+        'seal-area': (20, 20, 274, 108),
+        'name': (30, 108, 264, 120),
+        'nation': (32, 152, 142, 164),
+        'number': (158, 152, 274, 164),
+        'purpose': (32, 196, 142, 208),
+        'duration': (158, 196, 274, 208),
+        'height': (32, 240, 82, 252),
+        'weight': (158, 240, 207, 256),
+        'description': (32, 284, 264, 296),
+        'expiration': (178, 328, 244, 340),
+        'label': (6, 340, 288, 386)
     }
 
     @staticmethod
     def load():
         AccessPermit.BACKGROUNDS = Document.getBgs(
-            AccessPermit.LAYOUT, AccessPermit.TABLE_OFFSET, Image.open(
+            AccessPermit.LAYOUT, Image.open(
                 os.path.join(AccessPermit.TAS.ASSETS, "papers", "accessPermit.png")
             ).convert("RGB")
         )

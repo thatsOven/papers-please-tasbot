@@ -178,8 +178,8 @@ class TAS:
         # TODO this system needs further testing but in the AllEndings run
         # this can only happen in days 25 and 27, and has an approximately 
         # 0.6% chance of happening with every entrant
-        self.needId     = False
-        self.newData    = True
+        self.needId  = False
+        self.newData = True
 
         self.poison       = False
         self.doConfiscate = True
@@ -334,105 +334,105 @@ class TAS:
                 Nation.ANTEGRIA,
                 os.path.join(TAS.ASSETS, "passports", "antegria"),
                 (City.ST_MARMERO, City.GLORIAN, City.OUTER_GROUSE),
-                PassportData().offsets(
-                    name       = (271, 327, 500, 342),
-                    birth      = (325, 251, 390, 262),
-                    sex        = (305, 269, 314, 280),
-                    city       = (305, 287, 418, 302),
-                    expiration = (325, 305, 390, 316),
-                    number     = (271, 347, 504, 358),
-                    picture    = (421, 225, 500, 320),
-                    label      = (271, 225, 390, 242)
+                PassportData(
+                    name       = ( 16, 278, 246, 294),
+                    birth      = ( 70, 202, 136, 214),
+                    sex        = ( 50, 220,  60, 232),
+                    city       = ( 50, 238, 164, 254),
+                    expiration = ( 70, 256, 136, 268),
+                    number     = ( 16, 298, 250, 310),
+                    picture    = (166, 176, 246, 272),
+                    label      = ( 16, 176, 136, 194)
                 )
             ),
             PassportType(
                 Nation.ARSTOTZKA,
                 os.path.join(TAS.ASSETS, "passports", "arstotzka"),
                 (City.ORVECH_VONOR, City.EAST_GRESTIN, City.PARADIZNA),
-                PassportData().offsets(
-                    name       = (271, 225, 503, 240),
-                    birth      = (411, 245, 476, 256),
-                    sex        = (391, 261, 400, 272),
-                    city       = (391, 277, 506, 292),
-                    expiration = (411, 293, 476, 304),
-                    number     = (271, 345, 394, 356),
-                    picture    = (271, 245, 350, 340),
-                    label      = (413, 315, 500, 334)
+                PassportData(
+                    name       = ( 16, 176, 249, 192),
+                    birth      = (156, 196, 222, 208),
+                    sex        = (136, 212, 146, 224),
+                    city       = (136, 228, 252, 244),
+                    expiration = (156, 244, 222, 256),
+                    number     = ( 16, 296, 140, 308),
+                    picture    = ( 16, 196,  96, 292),
+                    label      = (158, 266, 246, 286)
                 )
             ),
             PassportType(
                 Nation.IMPOR,
                 os.path.join(TAS.ASSETS, "passports", "impor"),
                 (City.ENKYO, City.HAIHAN, City.TSUNKEIDO),
-                PassportData().offsets(
-                    name       = (269, 221, 503, 236),
-                    birth      = (415, 243, 482, 254),
-                    sex        = (395, 259, 404, 270),
-                    city       = (395, 275, 498, 290),
-                    expiration = (415, 291, 482, 302),
-                    number     = (335, 341, 500, 352),
-                    picture    = (273, 241, 352, 336),
-                    label      = (275, 343, 334, 354)
+                PassportData(
+                    name       = ( 14, 172, 249, 188),
+                    birth      = (160, 194, 228, 206),
+                    sex        = (140, 210, 150, 222),
+                    city       = (140, 226, 244, 242),
+                    expiration = (160, 242, 228, 254),
+                    number     = ( 80, 292, 246, 304),
+                    picture    = ( 18, 192,  98, 288),
+                    label      = ( 20, 294,  80, 306)
                 )
             ),
             PassportType(
                 Nation.KOLECHIA,
                 os.path.join(TAS.ASSETS, "passports", "kolechia"),
                 (City.YURKO_CITY, City.VEDOR, City.WEST_GRESTIN),
-                PassportData().offsets(
-                    name       = (271, 245, 502, 260),
-                    birth      = (413, 263, 478, 274),
-                    sex        = (393, 279, 402, 290),
-                    city       = (393, 295, 502, 310),
-                    expiration = (413, 311, 478, 322),
-                    number     = (354, 345, 505, 356),
-                    picture    = (271, 263, 350, 358),
-                    label      = (271, 221, 498, 238)
+                PassportData(
+                    name       = ( 16, 196, 248, 212),
+                    birth      = (158, 214, 224, 226),
+                    sex        = (138, 230, 148, 242),
+                    city       = (138, 246, 248, 262),
+                    expiration = (158, 262, 224, 274),
+                    number     = ( 99, 296, 251, 308),
+                    picture    = ( 16, 214,  96, 310),
+                    label      = ( 16, 172, 244, 190)
                 )
             ),
             PassportType(
                 Nation.OBRISTAN,
                 os.path.join(TAS.ASSETS, "passports", "obristan"),
                 (City.SKAL, City.LORNDAZ, City.MERGEROUS),
-                PassportData().offsets(
-                    name       = (271, 245, 502, 260),
-                    birth      = (329, 271, 394, 282),
-                    sex        = (309, 287, 318, 298),
-                    city       = (309, 303, 416, 318),
-                    expiration = (329, 319, 394, 330),
-                    number     = (275, 345, 422, 356),
-                    picture    = (423, 263, 502, 358),
-                    label      = (269, 221, 504, 240)
+                PassportData(
+                    name       = ( 16, 196, 248, 212),
+                    birth      = ( 74, 222, 140, 234),
+                    sex        = ( 54, 238,  64, 250),
+                    city       = ( 54, 254, 162, 270),
+                    expiration = ( 74, 270, 140, 282),
+                    number     = ( 20, 296, 168, 308),
+                    picture    = (168, 214, 248, 310),
+                    label      = ( 14, 172, 250, 192)
                 )
             ),
             PassportType(
                 Nation.REPUBLIA,
                 os.path.join(TAS.ASSETS, "passports", "republia"),
                 (City.TRUE_GLORIAN, City.LESRENADI, City.BOSTAN),
-                PassportData().offsets(
-                    name       = (271, 223, 503, 238),
-                    birth      = (329, 245, 394, 256),
-                    sex        = (309, 261, 318, 272),
-                    city       = (309, 277, 423, 292),
-                    expiration = (329, 293, 394, 304),
-                    number     = (271, 345, 507, 356),
-                    picture    = (425, 241, 504, 336),
-                    label      = (273, 321, 396, 336)
+                PassportData(
+                    name       = ( 16, 174, 249, 190),
+                    birth      = ( 74, 196, 140, 208),
+                    sex        = ( 54, 212,  64, 224),
+                    city       = ( 54, 228, 169, 244),
+                    expiration = ( 74, 244, 140, 256),
+                    number     = ( 16, 296, 253, 308),
+                    picture    = (170, 192, 250, 288),
+                    label      = ( 18, 272, 142, 288)
                 )
             ),
             PassportType(
                 Nation.UNITEDFED,
                 os.path.join(TAS.ASSETS, "passports", "unitedFed"),
                 (City.GREAT_RAPID, City.SHINGLETON, City.KORISTA_CITY),
-                PassportData().offsets(
-                    name       = (271, 245, 504, 260),
-                    birth      = (413, 261, 479, 272),
-                    sex        = (393, 277, 402, 288),
-                    city       = (393, 293, 504, 308),
-                    expiration = (413, 309, 479, 320),
-                    number     = (355, 345, 507, 356),
-                    picture    = (271, 261, 350, 356),
-                    label      = (271, 223, 504, 238)
+                PassportData(
+                    name       = ( 16, 196, 250, 212),
+                    birth      = (158, 212, 225, 224),
+                    sex        = (138, 228, 148, 240),
+                    city       = (138, 244, 250, 260),
+                    expiration = (158, 260, 225, 272),
+                    number     = (100, 296, 253, 308),
+                    picture    = ( 16, 212,  96, 308),
+                    label      = ( 16, 174, 250, 190)
                 )
             )
         )
@@ -462,10 +462,10 @@ class TAS:
         logger.info("Initializing Transcription...")
         Transcription.load()
     
-        for document in TAS.DOCUMENTS:
-            logger.info(f"Initializing {document.__name__}...")
-            document.TAS = TAS
-            document.load()
+        for DocumentSubclass in TAS.DOCUMENTS:
+            logger.info(f"Initializing {DocumentSubclass.__name__}...")
+            DocumentSubclass.TAS = TAS
+            DocumentSubclass.load()
 
         logger.info("TASBOT initialized!")
 
@@ -1104,11 +1104,15 @@ class TAS:
         if move: self.moveTo(PAPER_POS)
         self.dragTo(PAPER_SCAN_POS)
         self.moveTo(PAPER_POS) # get cursor out of the way
-        docImg = Image.fromarray(bgFilter(before, np.asarray(self.getScreen().crop(TABLE_AREA))))
+        docImg = bgFilter(before, np.asarray(self.getScreen().crop(TABLE_AREA)))
+        # only crop document out of picture
+        ys, xs = np.where((docImg != (0, 0, 0)).all(axis = -1))
+        offs = (min(xs), min(ys))
+        docImg = Image.fromarray(docImg).crop(offs + (max(xs) + 1, max(ys) + 1))
 
-        for document in TAS.DOCUMENTS:
-            if document.checkMatch(docImg):
-                doc = document(docImg)
+        for Document in TAS.DOCUMENTS:
+            if Document.checkMatch(docImg):
+                doc = Document(docImg, offs)
 
                 if self.doConfiscate and self.currRun.confiscatePassportWhen(doc):
                     self.confiscate = True
@@ -1145,7 +1149,7 @@ class TAS:
 
         if self.date == TAS.DAY_1: return type_.nation
 
-        passport = Passport(docImg, type_)
+        passport = Passport(docImg, offs, type_)
 
         if self.doConfiscate and self.currRun.confiscatePassportWhen(passport):
             self.confiscate = True
@@ -1539,7 +1543,7 @@ class TAS:
         self.moveTo(PAPER_SCAN_POS)
         self.dragTo(RULEBOOK_POS)
 
-    def missingDoc(self, rule: str, type_: type) -> bool:
+    def missingDoc(self, rule: str, Type_: Type[Document]) -> bool:
         self.interrogateMissingDoc(rule)
         self.putRulebookBack()
 
@@ -1547,7 +1551,7 @@ class TAS:
             tmp = self.lastGiveArea
             self.lastGiveArea = np.asarray(self.getScreen().crop(GIVE_AREA))
             
-            if self.transcription.waitFor(lambda: self.transcription.getMissingDocGiven(type_.__name__)):
+            if self.transcription.waitFor(lambda: self.transcription.getMissingDocGiven(Type_.__name__)):
                 self.waitForGiveAreaChange(update = False)
                 doc = self.docScan()
 
@@ -1768,11 +1772,11 @@ class TAS:
                 self.comparePassportAndDoc(arstotzkanIdPos)
 
                 if birthDiscrepancy:
-                    self.click(onTable(textFieldOffset(rightSlot(ArstotzkanID.LAYOUT["birth"][:2]))))
-                    self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.birth[:2]))))
+                    self.click(onTable(textFieldOffset(rightSlot(arstotzkanId.getTableBox("birth")[:2]))))
+                    self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("birth")[:2]))))
                 else:
-                    self.click(onTable(textFieldOffset(rightSlot(ArstotzkanID.LAYOUT["last-name"][:2]))))
-                    self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                    self.click(onTable(textFieldOffset(rightSlot(arstotzkanId.getTableBox("last-name")[:2]))))
+                    self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
 
                 if self.interrogateFailsafe():
                     self.allowWithPassport(arstotzkanIdPos)
@@ -1801,14 +1805,14 @@ class TAS:
             self.comparePassportAndDoc(diplomaticAuthPos)
 
             if nameDiscrepancy:
-                self.click(onTable(rightSlot(centerOf(DiplomaticAuth.LAYOUT["name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(centerOf(diplomaticAuth.getTableBox("name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
             elif numberDiscrepancy:
-                self.click(onTable(rightSlot(centerOf(DiplomaticAuth.LAYOUT["number"]))))
-                self.click(onTable(leftSlot(self.documentStack.passport.type_.getNumberClick())))
+                self.click(onTable(rightSlot(centerOf(diplomaticAuth.getTableBox("number")))))
+                self.click(onTable(leftSlot(self.documentStack.passport.getNumberClick())))
             else:
-                self.click(onTable(textFieldOffset(rightSlot(DiplomaticAuth.LAYOUT["nation"][:2]))))
-                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.type_.layout.label))))
+                self.click(onTable(textFieldOffset(rightSlot(diplomaticAuth.getTableBox("nation")[:2]))))
+                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.getTableBox("label")))))
 
             if self.interrogateFailsafe():
                 self.allowWithPassport(diplomaticAuthPos)
@@ -1837,11 +1841,11 @@ class TAS:
             self.comparePassportAndDoc(entryPermitPos)
 
             if nameDiscrepancy:
-                self.click(onTable(rightSlot(centerOf(EntryPermit.LAYOUT["name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(centerOf(entryPermit.getTableBox("name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
             else:
-                self.click(onTable(rightSlot(centerOf(EntryPermit.LAYOUT["number"]))))
-                self.click(onTable(leftSlot(self.documentStack.passport.type_.getNumberClick())))
+                self.click(onTable(rightSlot(centerOf(entryPermit.getTableBox("number")))))
+                self.click(onTable(leftSlot(self.documentStack.passport.getNumberClick())))
 
             if self.interrogateFailsafe():
                 self.allowWithPassport(entryPermitPos)
@@ -1851,8 +1855,8 @@ class TAS:
             return True
         return False
         
-    def handleWorkPassWithReason(self, permitType: type) -> bool:
-        permit: EntryPermit | AccessPermit = self.documentStack.get(permitType)
+    def handleWorkPassWithReason(self, PermitType: type) -> bool:
+        permit: EntryPermit | AccessPermit = self.documentStack.get(PermitType)
 
         if permit.purpose == Purpose.WORK:
             workPass: WorkPass = self.documentStack.get(WorkPass)
@@ -1868,8 +1872,8 @@ class TAS:
 
             if nameDiscrepancy:
                 self.comparePassportAndDoc(workPassPos)
-                self.click(onTable(rightSlot(centerOf(WorkPass.LAYOUT["name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(centerOf(workPass.getTableBox("name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
 
                 if self.interrogateFailsafe():
                     self.allowWithPassport(workPassPos)
@@ -1882,7 +1886,7 @@ class TAS:
                 self.dragTo(PAPER_SCAN_POS)
 
                 self.click(INSPECT_BUTTON)
-                self.click(centerOf(WorkPass.LAYOUT["until"]))
+                self.click(centerOf(workPass.getTableBox("until")))
                 self.click(CLOCK_POS)
 
                 if self.interrogateFailsafe():
@@ -1917,11 +1921,11 @@ class TAS:
             return True
         return False
     
-    def handlePurposeDurationWithReason(self, permitType: Type[EntryPermit | AccessPermit], alignFn: Callable[[tuple[int, int, int, int]], tuple[int, int]]) -> bool:
+    def handlePurposeDurationWithReason(self, PermitType: Type[EntryPermit | AccessPermit], alignFn: Callable[[tuple[int, int, int, int]], tuple[int, int]]) -> bool:
         duration = self.transcription.waitFor(self.transcription.getDuration)
         purpose  = self.transcription.getPurpose()
 
-        permit: EntryPermit | AccessPermit = self.documentStack.get(permitType)
+        permit: EntryPermit | AccessPermit = self.documentStack.get(PermitType)
 
         purposeDiscrepancy  = permit.purpose  != purpose
         durationDiscrepancy = permit.duration != duration
@@ -1930,7 +1934,7 @@ class TAS:
             purposePos  = self.transcription.getPurposePos()
             durationPos = self.transcription.getDurationPos()
 
-            permitPos = self.documentStack.getSlot(permitType)
+            permitPos = self.documentStack.getSlot(PermitType)
 
             self.moveTo(SLOTS[permitPos])
             self.dragTo(RIGHT_SCAN_SLOT)
@@ -1942,10 +1946,10 @@ class TAS:
 
             if purposeDiscrepancy:
                 self.click(onTable(textFieldOffset(leftSlot(purposePos[:2]))))
-                self.click(onTable(rightSlot(alignFn(permitType.LAYOUT["purpose"]))))
+                self.click(onTable(rightSlot(alignFn(permit.getTableBox("purpose")))))
             else:
                 self.click(onTable(textFieldOffset(leftSlot(durationPos[:2]))))
-                self.click(onTable(rightSlot(alignFn(permitType.LAYOUT["duration"]))))
+                self.click(onTable(rightSlot(alignFn(permit.getTableBox("duration")))))
 
             if not self.interrogateFailsafe():
                 time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
@@ -1985,17 +1989,17 @@ class TAS:
             self.comparePassportAndDoc(grantOfAsylumPos)
 
             if nameDiscrepancy:
-                self.click(onTable(rightSlot(textFieldOffset(GrantOfAsylum.LAYOUT["first-name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(textFieldOffset(grantOfAsylum.getTableBox("first-name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
             elif numberDiscrepancy:
-                self.click(onTable(rightSlot(textFieldOffset(GrantOfAsylum.LAYOUT["number"]))))
-                self.click(onTable(leftSlot(self.documentStack.passport.type_.getNumberClick())))
+                self.click(onTable(rightSlot(textFieldOffset(grantOfAsylum.getTableBox("number")))))
+                self.click(onTable(leftSlot(self.documentStack.passport.getNumberClick())))
             elif nationDiscrepancy:
-                self.click(onTable(textFieldOffset(rightSlot(GrantOfAsylum.LAYOUT["nation"][:2]))))
-                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.type_.layout.label))))
+                self.click(onTable(textFieldOffset(rightSlot(grantOfAsylum.getTableBox("nation")[:2]))))
+                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.getTableBox("label")))))
             else:
-                self.click(onTable(textFieldOffset(rightSlot(GrantOfAsylum.LAYOUT["birth"][:2]))))
-                self.click(onTable(leftSlot(textFieldOffset(self.documentStack.passport.type_.layout.birth))))
+                self.click(onTable(textFieldOffset(rightSlot(grantOfAsylum.getTableBox("birth")[:2]))))
+                self.click(onTable(leftSlot(textFieldOffset(self.documentStack.passport.getTableBox("birth")))))
 
             if self.interrogateFailsafe():
                 self.allowWithPassport(grantOfAsylumPos)
@@ -2024,11 +2028,11 @@ class TAS:
             self.comparePassportAndDoc(vaxCertPos)
 
             if nameDiscrepancy:
-                self.click(onTable(rightSlot(centerOf(VaxCert.LAYOUT["name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(centerOf(vaxCert.getTableBox("name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
             else:
-                self.click(onTable(rightSlot(centerOf(VaxCert.LAYOUT["number"]))))
-                self.click(onTable(leftSlot(self.documentStack.passport.type_.getNumberClick())))
+                self.click(onTable(rightSlot(centerOf(vaxCert.getTableBox("number")))))
+                self.click(onTable(leftSlot(self.documentStack.passport.getNumberClick())))
 
             if self.interrogateFailsafe():
                 self.allowWithPassport(vaxCertPos)
@@ -2055,14 +2059,14 @@ class TAS:
             self.comparePassportAndDoc(accessPermitPos)
 
             if nameDiscrepancy:
-                self.click(onTable(rightSlot(centerOf(AccessPermit.LAYOUT["name"]))))
-                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.type_.layout.name[:2]))))
+                self.click(onTable(rightSlot(centerOf(accessPermit.getTableBox("name")))))
+                self.click(onTable(textFieldOffset(leftSlot(self.documentStack.passport.getTableBox("name")[:2]))))
             elif numberDiscrepancy:
-                self.click(onTable(rightSlot(textFieldOffset(AccessPermit.LAYOUT["number"]))))
-                self.click(onTable(leftSlot(self.documentStack.passport.type_.getNumberClick())))
+                self.click(onTable(rightSlot(textFieldOffset(accessPermit.getTableBox("number")[:2]))))
+                self.click(onTable(leftSlot(self.documentStack.passport.getNumberClick())))
             else:
-                self.click(onTable(rightSlot(textFieldOffset(AccessPermit.LAYOUT["nation"]))))
-                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.type_.layout.label))))
+                self.click(onTable(rightSlot(textFieldOffset(accessPermit.getTableBox("nation")[:2]))))
+                self.click(onTable(leftSlot(centerOf(self.documentStack.passport.getTableBox("label")))))
 
             if self.interrogateFailsafe():
                 self.allowWithPassport(accessPermitPos)

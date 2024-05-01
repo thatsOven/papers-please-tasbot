@@ -1,6 +1,6 @@
 from PIL    import Image
 from enum   import Enum
-from typing import Type, TYPE_CHECKING
+from typing import Type, ClassVar, TYPE_CHECKING
 import os, pyautogui as pg, numpy as np
 
 from modules.constants.screen   import *
@@ -43,7 +43,7 @@ class AnalyzeData:
         self.message = None
     
 class Transcription:
-    TAS: Type["TAS"] = None
+    TAS: ClassVar[Type["TAS"]] = None
 
     NEXT = None
     BACK = None
@@ -76,6 +76,7 @@ class Transcription:
 
         self.__tas = tas
         self.__currPage  = 0
+        self.__tableOffs = (0, 0)
 
     def reset(self):
         self.conversation.clear()
@@ -122,9 +123,10 @@ class Transcription:
         
         pages = []
         while True:
-            fullPage = Image.fromarray(
-                bgFilter(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
-            )
+            img = bgFilter(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
+            ys, xs = np.where((img != (0, 0, 0)).all(axis = -1))
+            self.__tableOffs = (min(xs), min(ys))
+            fullPage = Image.fromarray(img).crop(self.__tableOffs + (max(xs) + 1, max(ys) + 1))
 
             pages.append(self.__reducePage(fullPage.crop(TRANSCRIPTION_PAGE_TEXT_AREA)))
 
@@ -173,7 +175,7 @@ class Transcription:
                     boxes.append(Message(
                         who, 
                         textBox.crop((TRANSCRIPTION_TEXTBOX_TEXT_OFFSET[0], 0) + textBox.size), # removes little left border
-                        MessageLoc(pageN, offsetBox(cropBox, TRANSCRIPTION_PAGE_TEXT_AREA[:2]))
+                        MessageLoc(pageN, offsetBox(offsetBox(cropBox, TRANSCRIPTION_PAGE_TEXT_AREA[:2]), self.__tableOffs))
                     ))
 
                     yStart = yTest  + TRANSCRIPTION_TEXTBOX_TEXT_OFFSET[1]

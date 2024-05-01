@@ -13,7 +13,7 @@ from typing      import Callable, ClassVar, NoReturn
 
 from modules.sockets import *
 
-VERSION = "2024.4.30"
+VERSION = "2024.5.1"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"

@@ -5,29 +5,28 @@ import os, numpy as np
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.textRecognition    import parseText, parseDate
 from modules.utils              import *
 
 class EntryPermit(Document):
     BACKGROUNDS = None
     
-    TABLE_OFFSET = (235, 9) 
-    TEXT_COLOR   = (119, 103, 137)
+    TEXT_COLOR = (119, 103, 137)
     LAYOUT = {
-        "name":       getBox(265, 191, 502, 202),
-        "number":     getBox(265, 257, 502, 268),
-        "purpose":    getBox(337, 289, 502, 300),
-        "duration":   getBox(337, 319, 502, 330),
-        "expiration": getBox(393, 349, 458, 360),
-        "seal-area":  getBox(255,  31, 514, 190),
-        "label":      getBox(241, 365, 528, 400)
+        'name': (30, 182, 268, 194),
+        'number': (30, 248, 268, 260),
+        'purpose': (102, 280, 268, 292),
+        'duration': (102, 310, 268, 322),
+        'expiration': (158, 340, 224, 352),
+        'seal-area': (20, 22, 280, 182),
+        'label': (6, 356, 294, 392)
     }
 
     @staticmethod
     def load():
         EntryPermit.BACKGROUNDS = Document.getBgs(
-            EntryPermit.LAYOUT, EntryPermit.TABLE_OFFSET, Image.open(
+            EntryPermit.LAYOUT, Image.open(
                 os.path.join(EntryPermit.TAS.ASSETS, "papers", "entryPermit.png")
             ).convert("RGB")
         )

@@ -8,7 +8,7 @@ from modules.constants.other    import *
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.textRecognition    import parseDate, parseText
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.utils              import *
 
 # not really necessary, but whatever
@@ -32,14 +32,13 @@ class WorkPass(Document):
 
     SEALS = None
 
-    TABLE_OFFSET = (239, 75)
-    TEXT_COLOR   = (137, 106, 103)
+    TEXT_COLOR = (137, 106, 103)
     LAYOUT = {
-        "name":      getBox(313, 209, 516, 220),
-        "field":     getBox(313, 239, 516, 250),
-        "until":     getBox(389, 269, 455, 280),
-        "label":     getBox(239, 281, 532, 344),
-        "seal-area": getBox(251,  89, 518, 208)
+        'name': (74, 134, 278, 146),
+        'field': (74, 164, 278, 176),
+        'until': (150, 194, 217, 206),
+        'label': (0, 206, 294, 270),
+        'seal-area': (12, 14, 280, 134)
     }
 
     @staticmethod
@@ -51,7 +50,7 @@ class WorkPass(Document):
         )
 
         WorkPass.BACKGROUNDS = Document.getBgs(
-            WorkPass.LAYOUT, WorkPass.TABLE_OFFSET, Image.open(
+            WorkPass.LAYOUT, Image.open(
                 os.path.join(WorkPass.TAS.ASSETS, "papers", "workPass", "inner.png")
             ).convert("RGB")
         )

@@ -1,6 +1,6 @@
 from PIL    import Image
 from enum   import Enum
-from typing import Self, Type, ClassVar, TYPE_CHECKING
+from typing import Type, ClassVar, TYPE_CHECKING
 import os, numpy as np
 
 from modules.constants.screen   import *
@@ -8,7 +8,7 @@ from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
 from modules.faceRecognition    import Face, FaceType
-from modules.documents.document import BaseDocument, Document, convertBox, getBox
+from modules.documents.document import BaseDocument, Document
 from modules.utils              import *
 
 import logging
@@ -62,17 +62,6 @@ class PassportData:
         self.picture    = picture
         self.label      = label
 
-    def offsets(self, *, name, birth, sex, city, expiration, number, picture, label): 
-        self.name       = getBox(*name)
-        self.birth      = getBox(*birth)
-        self.sex        = getBox(*sex)
-        self.city       = getBox(*city)
-        self.expiration = getBox(*expiration)
-        self.number     = getBox(*number)
-        self.picture    = getBox(*picture)
-        self.label      = getBox(*label)
-        return self
-
 class PassportType:
     def __init__(self, nation, baseDir, cities, layout):
         logger.info(f"Initializing passport for {nation}...")
@@ -83,26 +72,19 @@ class PassportType:
         
         innerTexture = doubleImage(Image.open(os.path.join(baseDir, "inner.png")).convert("RGB"))
         self.backgrounds = PassportData(
-            name       = innerTexture.crop(convertBox(self.layout.name,       PASSPORT_TABLE_OFFSET)),
-            birth      = innerTexture.crop(convertBox(self.layout.birth,      PASSPORT_TABLE_OFFSET)),
-            city       = innerTexture.crop(convertBox(self.layout.city,       PASSPORT_TABLE_OFFSET)),
-            expiration = innerTexture.crop(convertBox(self.layout.expiration, PASSPORT_TABLE_OFFSET)),
-            number     = innerTexture.crop(convertBox(self.layout.number,     PASSPORT_TABLE_OFFSET)),
-            label      = innerTexture.crop(convertBox(self.layout.label,      PASSPORT_TABLE_OFFSET))
-        )
-
-    def getNumberClick(self):
-        match self.nation:
-            case Nation.ANTEGRIA | Nation.IMPOR | Nation.KOLECHIA | Nation.REPUBLIA | Nation.UNITEDFED:
-                return offsetPoint(self.layout.number[2:], (-40, -4))
-            case Nation.ARSTOTZKA | Nation.OBRISTAN:
-                return textFieldOffset(self.layout.number[:2])
+            name       = innerTexture.crop(self.layout.name),
+            birth      = innerTexture.crop(self.layout.birth),
+            city       = innerTexture.crop(self.layout.city),
+            expiration = innerTexture.crop(self.layout.expiration),
+            number     = innerTexture.crop(self.layout.number),
+            label      = innerTexture.crop(self.layout.label)
+        )        
 
 class Passport(BaseDocument):
     TAS: ClassVar[Type["TAS"]] = None
 
-    def __init__(self, docImg: Image.Image, type_: PassportType):
-        super().__init__(docImg)
+    def __init__(self, docImg: Image.Image, tableOffs: tuple[int, int], type_: PassportType):
+        super().__init__(docImg, tableOffs)
         self.type_ = type_
 
         self.__obristan = type_.nation == Nation.OBRISTAN
@@ -170,6 +152,13 @@ class Passport(BaseDocument):
             self.name.first.capitalize() not in Passport.TAS.NAMES["first"][self.sex] or
             self.name.last.capitalize()  not in Passport.TAS.NAMES["last"][self.sex]
         )
+    
+    def getNumberClick(self):
+        match self.type_.nation:
+            case Nation.ANTEGRIA | Nation.IMPOR | Nation.KOLECHIA | Nation.REPUBLIA | Nation.UNITEDFED:
+                return offsetPoint(self.getTableBox("number")[2:], (-40, -4))
+            case Nation.ARSTOTZKA | Nation.OBRISTAN:
+                return textFieldOffset(self.getTableBox("number")[:2])
             
     def __repr__(self):
         return f"""==- Passport -==
@@ -179,4 +168,5 @@ sex:        {self.sex}
 city:       {self.city}
 expiration: {self.expiration}
 number:     {self.number}
-nation:     {self.type_.nation}"""
+nation:     {self.type_.nation}
+face:       {self.face}"""

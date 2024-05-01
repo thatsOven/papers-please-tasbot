@@ -6,7 +6,7 @@ from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.documents.passport import Nation
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.textRecognition    import parseText
 from modules.utils              import *
 
@@ -16,17 +16,16 @@ class DiplomaticAuth(Document):
     ACCESS_TO_ROWS = 3
     SEALS = {}
     
-    TABLE_OFFSET = (235, 11)
-    TEXT_COLOR   = (122, 128, 141)
+    TEXT_COLOR = (122, 128, 141)
     LAYOUT = {
-        "nation":      getBox(303,  19, 444,  30),
-        "label":       getBox(267,  53, 426, 108),
-        "name":        getBox(309, 193, 522, 204),
-        "number":      getBox(333, 217, 522, 228),
-        "access-to-0": getBox(277, 315, 516, 328),
-        "access-to-1": getBox(277, 333, 516, 346),
-        "access-to-2": getBox(277, 351, 516, 364),
-        "seal-area":   getBox(427,  39, 532, 134)
+        'nation': (68, 8, 210, 20),
+        'label': (32, 42, 192, 98),
+        'name': (74, 182, 288, 194),
+        'number': (98, 206, 288, 218),
+        'access-to-0': (42, 304, 282, 318),
+        'access-to-1': (42, 322, 282, 336),
+        'access-to-2': (42, 340, 282, 354),
+        'seal-area': (192, 28, 298, 124)
     }
 
     @staticmethod
@@ -45,7 +44,7 @@ class DiplomaticAuth(Document):
             )
 
         DiplomaticAuth.BACKGROUNDS = Document.getBgs(
-            DiplomaticAuth.LAYOUT, DiplomaticAuth.TABLE_OFFSET, Image.open(
+            DiplomaticAuth.LAYOUT, Image.open(
                 os.path.join(DiplomaticAuth.TAS.ASSETS, "papers", "diplomaticAuth", "inner.png")
             ).convert("RGB")
         )

@@ -7,7 +7,7 @@ import os, numpy as np
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
-from modules.documents.document import BaseDocument, Document, getBox
+from modules.documents.document import BaseDocument, Document
 from modules.textRecognition    import parseText, parseDate
 from modules.utils              import *
 
@@ -24,13 +24,13 @@ class Disease(Enum):
 class Vaccine(BaseDocument):
     BACKGROUNDS = None
     LAYOUT = {
-        "date":    getBox( 6, 6,  71, 17),
-        "disease": getBox(94, 6, 201, 17)
+        "date":    ( 6, 6,  72, 18),
+        "disease": (94, 6, 202, 18)
     }
 
     @staticmethod
     def load(fullBg: Image.Image):
-        Vaccine.BACKGROUNDS = Document.getBgs(Vaccine.LAYOUT, (0, 0), fullBg)
+        Vaccine.BACKGROUNDS = Document.getBgs(Vaccine.LAYOUT, fullBg)
         Vaccine.BACKGROUNDS["full"] = np.asarray(fullBg)
 
     def empty(self) -> bool:
@@ -61,21 +61,20 @@ class VaxCert(Document):
 
     N_VACCINES = 3
 
-    TABLE_OFFSET = (251, 55) 
-    TEXT_COLOR   = (101, 88, 114)
+    TEXT_COLOR = (101, 88, 114)
     LAYOUT = {
-        "label":  getBox(253,  57, 518, 156),
-        "name":   getBox(265, 157, 506, 168),
-        "number": getBox(305, 183, 506, 194),
-        "vax-0":  getBox(285, 239, 486, 260),
-        "vax-1":  getBox(285, 263, 486, 284),
-        "vax-2":  getBox(285, 287, 486, 308),
+        'label': (2, 2, 268, 102),
+        'name': (14, 102, 256, 114),
+        'number': (54, 128, 256, 140),
+        'vax-0': (34, 184, 236, 206),
+        'vax-1': (34, 208, 236, 230),
+        'vax-2': (34, 232, 236, 254)
     }
 
     @staticmethod
     def load():
         VaxCert.BACKGROUNDS = Document.getBgs(
-            VaxCert.LAYOUT, VaxCert.TABLE_OFFSET, Image.open(
+            VaxCert.LAYOUT, Image.open(
                 os.path.join(VaxCert.TAS.ASSETS, "papers", "vaxCert.png")
             ).convert("RGB")
         )
