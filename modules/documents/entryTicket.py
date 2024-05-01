@@ -12,8 +12,8 @@ class EntryTicket(Document):
 
     TEXT_COLOR = (119, 103, 137)
     LAYOUT = {
-        "date" : (  0,   0,  67,  12), 
-        "label": (347, 179, 499, 203)
+        "date" : (  0,  0,  67, 12), 
+        "label": (102, 20, 254, 44)
     }
 
     @staticmethod
