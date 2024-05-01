@@ -7,13 +7,12 @@ from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.textRecognition    import parseDate, parseText
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.utils              import *
 
 class IDSupplement(Document):
     BACKGROUNDS = None
 
-    TABLE_OFFSET          = (295, 61) 
     EXPIRATION_TEXT_COLOR = (181, 18,  6)
     TEXT_COLOR            = ( 78, 69, 79)
     LAYOUT = {

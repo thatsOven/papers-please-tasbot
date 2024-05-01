@@ -5,7 +5,7 @@ import os, numpy as np
 from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.documents.passport import Nation
 from modules.textRecognition    import parseText, parseDate
 from modules.faceRecognition    import Face, FaceType
@@ -14,8 +14,7 @@ from modules.utils              import *
 class GrantOfAsylum(Document):
     BACKGROUNDS = None
 
-    TABLE_OFFSET = (225, 23)
-    TEXT_COLOR   = (125, 109, 121)
+    TEXT_COLOR = (125, 109, 121)
     LAYOUT = {
         'seal-area': (10, 20, 310, 100),
         'first-name': (146, 108, 300, 120),

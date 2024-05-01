@@ -6,7 +6,7 @@ from modules.constants.screen   import *
 from modules.constants.delays   import *
 from modules.constants.other    import *
 from modules.documents.passport import Nation
-from modules.documents.document import Document, getBox
+from modules.documents.document import Document
 from modules.textRecognition    import parseText, parseDate
 from modules.utils              import *
 
