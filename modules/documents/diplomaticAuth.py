@@ -44,9 +44,9 @@ class DiplomaticAuth(Document):
             )
 
         DiplomaticAuth.BACKGROUNDS = Document.getBgs(
-            DiplomaticAuth.LAYOUT, Image.open(
+            DiplomaticAuth.LAYOUT, doubleImage(Image.open(
                 os.path.join(DiplomaticAuth.TAS.ASSETS, "papers", "diplomaticAuth", "inner.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         DiplomaticAuth.BACKGROUNDS["label"] = np.asarray(DiplomaticAuth.BACKGROUNDS["label"])

@@ -1,11 +1,14 @@
 # **NOTE**
 # this is an experimental patch for the bot to work for the latest version of the game (1.4.11.124).
-# it currently can only (somewhat) play day 1 but it's here as a start.
+# it currently doesn't do much, but it's here as a start.
 # 
 # for the bot to work, the game language has to be english, 
 # the date format must be 1982-1-23, and the game must be fullscreen in 1920x1080 resolution
 
 from tas import *
+
+from modules.frames import Frames
+
 import logging
 
 logger = logging.getLogger('tas.' + __name__)
@@ -15,35 +18,14 @@ OLD_WINDOW_RESOLUTION = (1140, 640)
 FULLSCREEN_REAL_BOX   = (105, 60, 1815, 1020)
 NEW_MOUSE_OFFSET      = (2, 2)
 
-MOMENTUM_STOP_TIME = 0.15
-
-SLEEP_BUTTON = (SLEEP_BUTTON[0], SLEEP_BUTTON[1] - 140)
-
 class NewTAS(TAS):
     def __init__(self):
         super().__init__()
+
+        self.frames = Frames()
         
         logger.info("**EXPERIMENTAL VERSION**")
         pg.PAUSE = 0.034 
-
-        passportTypes = list(TAS.PASSPORT_TYPES)
-        # TODO probably other passports are wrong too but this still needs testing
-        passportTypes[5] = PassportType(
-            Nation.REPUBLIA,
-            os.path.join(TAS.ASSETS, "patches", "republianPassport"),
-            (City.TRUE_GLORIAN, City.LESRENADI, City.BOSTAN),
-            PassportData().offsets(
-                name       = (271, 223, 503, 238),
-                birth      = (329, 245, 394, 256),
-                sex        = (309, 261, 318, 272),
-                city       = (309, 277, 423, 292),
-                expiration = (329, 293, 394, 304),
-                number     = (271, 345, 507, 356),
-                picture    = (425, 241, 504, 336),
-                label      = (273, 321, 396, 336)
-            )
-        )
-        TAS.PASSPORT_TYPES = tuple(passportTypes)
 
     def getScreen(self) -> Image.Image:
         realScreen = ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB").crop(FULLSCREEN_REAL_BOX)
@@ -62,9 +44,8 @@ class NewTAS(TAS):
     def dragTo(self, at: tuple[int, int]) -> None:
         pg.mouseDown()
         pg.dragTo(*self.mouseOffset(*at), button = 'left', mouseDownUp = False)
-        time.sleep(MOMENTUM_STOP_TIME)
+        self.frames.sleep(8) # stops momentum and fixes some issues with early releasing
         pg.mouseUp()
-        time.sleep(0.1) # idk what this does but if it's not here it breaks stuff
 
     def newGame(self) -> None:
         self.date = TAS.DAY_1
@@ -75,4 +56,6 @@ class NewTAS(TAS):
         pg.click(*self.mouseOffset(*INTRO_BUTTON), clicks = 11, interval = 0.05) # skip introduction
         time.sleep(MENU_DELAY)
 
-if __name__ == "__main__": NewTAS().run()
+    def waitForGiveAreaChange(self, *, update: bool = True, sleep: bool = True) -> None:
+        self.frames.sleep(1) # the new version has some more movement frames that trip the give area change check
+        super().waitForGiveAreaChange(update = update, sleep = sleep)

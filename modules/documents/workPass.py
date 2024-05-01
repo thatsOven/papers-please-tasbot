@@ -50,9 +50,9 @@ class WorkPass(Document):
         )
 
         WorkPass.BACKGROUNDS = Document.getBgs(
-            WorkPass.LAYOUT, Image.open(
+            WorkPass.LAYOUT, doubleImage(Image.open(
                 os.path.join(WorkPass.TAS.ASSETS, "papers", "workPass", "inner.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         WorkPass.BACKGROUNDS["label"] = np.asarray(WorkPass.BACKGROUNDS["label"])

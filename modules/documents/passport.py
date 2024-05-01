@@ -134,11 +134,19 @@ class Passport(BaseDocument):
     def sex(self) -> Sex:
         if self.__obristan:
             # i could wait around for a F marked passport from obristan but whatever, this works
-            return Sex(not np.array_equal(Passport.TAS.SEX_M_OBRISTAN, np.asarray(self.docImg.crop(self.type_.layout.sex))))
+            return Sex(not arrayEQWithTol(
+                Passport.TAS.SEX_M_OBRISTAN, 
+                np.asarray(self.docImg.crop(self.type_.layout.sex)), 
+                TEXT_RECOGNITION_TOLERANCE
+            ))
         else:
-            return Sex(np.array_equal(Passport.TAS.SEX_F_GENERIC,  np.asarray(self.docImg.crop(self.type_.layout.sex))))
+            return Sex(arrayEQWithTol(
+                Passport.TAS.SEX_F_GENERIC, 
+                np.asarray(self.docImg.crop(self.type_.layout.sex)), 
+                TEXT_RECOGNITION_TOLERANCE
+            ))
     
-    # check note in faceRecognition.py
+    # picture face recognition is not yet implemented
     @Document.field
     def face(self) -> Face:
         return Face.parse(self.docImg.crop(self.type_.layout.picture), FaceType.PASSPORT_PICTURE)

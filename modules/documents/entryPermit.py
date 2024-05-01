@@ -26,9 +26,9 @@ class EntryPermit(Document):
     @staticmethod
     def load():
         EntryPermit.BACKGROUNDS = Document.getBgs(
-            EntryPermit.LAYOUT, Image.open(
+            EntryPermit.LAYOUT, doubleImage(Image.open(
                 os.path.join(EntryPermit.TAS.ASSETS, "papers", "entryPermit.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         EntryPermit.BACKGROUNDS["label"] = np.asarray(EntryPermit.BACKGROUNDS["label"])

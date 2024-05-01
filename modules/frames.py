@@ -13,14 +13,14 @@ class Frames:
     def start(self):
         self.start_time = time.perf_counter()
 
-    def get_frame(self) -> int:
+    def getFrame(self) -> int:
         return int((time.perf_counter() - self.start_time) * Frames.FRAME_RATE)
 
     def sleep(self, frames: int):
-        sleep_frame = self.get_frame() + frames
-        self.sleep_to(sleep_frame)
+        sleep_frame = self.getFrame() + frames
+        self.sleepTo(sleep_frame)
 
-    def sleep_to(self, frame: int):
+    def sleepTo(self, frame: int):
         sleep_end = (frame / 60) + self.start_time
         current_time = time.perf_counter()
         while current_time < sleep_end:

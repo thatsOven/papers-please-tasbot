@@ -31,9 +31,9 @@ class AccessPermit(Document):
     @staticmethod
     def load():
         AccessPermit.BACKGROUNDS = Document.getBgs(
-            AccessPermit.LAYOUT, Image.open(
+            AccessPermit.LAYOUT, doubleImage(Image.open(
                 os.path.join(AccessPermit.TAS.ASSETS, "papers", "accessPermit.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         AccessPermit.BACKGROUNDS["label"] = np.asarray(AccessPermit.BACKGROUNDS["label"])

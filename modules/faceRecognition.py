@@ -1,9 +1,3 @@
-# **NOTE**
-# this module here does face recognition using lookup tables based on every possible face the game can generate.
-# the faces in the lookup tables though are generated using a replica of the latest game version's face generation 
-# algorithm, so this approach won't work on the version of the game the bot is currently compatible with. 
-# this is here to keep the code functional, but it's essentially doing nothing in the current state of things
-
 from PIL     import Image
 from enum    import Enum
 from hashlib import md5
@@ -178,15 +172,17 @@ class Face:
     @staticmethod
     def load() -> None:
         for type_ in FaceType:
-            if type_ == FaceType.WANTED_PICTURE: continue
+            # TODO add pictures tables
+            if type_ != FaceType.PERSON: 
+                Face.TABLES[type_] = {}
+                continue 
 
-            if type_ != FaceType.PERSON: continue # TODO add pictures tables
-            
+            if type_ == FaceType.WANTED_PICTURE: continue
             logger.info(f"Loading lookup table for {type_}...")
             Face.TABLES[type_] = Face.loadTable(os.path.join(Face.TAS.ASSETS, "faces", f"{type_.value}.ptbt"))
 
         # these are the same, so we just use the same table for both
-        # Face.TABLES[FaceType.WANTED_PICTURE] = Face.TABLES[FaceType.ID_PICTURE] # TODO add pictures tables
+        Face.TABLES[FaceType.WANTED_PICTURE] = Face.TABLES[FaceType.ID_PICTURE]
     
     @staticmethod
     def getHeightFromY(y: float, hairHeight: int) -> float:
@@ -290,9 +286,6 @@ class Face:
                 fixed = Face.cropHighest(img, Face.ORIGINAL_FG_COLOR, Face.ID_WANTED_CROP_AMT) 
 
         face = Face.TABLES[type_].get(md5(fixed.tobytes()).digest())
-
-        if face is None:
-            face = Face.TABLES[type_].get(md5(fixed.transpose(Image.FLIP_LEFT_RIGHT).tobytes()).digest())
         
         if heightPx is not None:
             if face is None: return None

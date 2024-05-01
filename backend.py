@@ -20,7 +20,8 @@ logger = logging.getLogger('tas.' + __name__)
 from modules.sockets import *
 
 from modules.run import Run
-from tas         import TAS
+# from tas         import TAS
+from tas_experimental import NewTAS as TAS
 
 class Backend:
     def __init__(self, port: int, directory: str):

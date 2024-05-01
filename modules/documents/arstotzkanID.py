@@ -45,9 +45,9 @@ class ArstotzkanID(Document):
     @staticmethod
     def load():
         ArstotzkanID.BACKGROUNDS = Document.getBgs(
-            ArstotzkanID.LAYOUT, Image.open(
+            ArstotzkanID.LAYOUT, doubleImage(Image.open(
                 os.path.join(ArstotzkanID.TAS.ASSETS, "papers", "arstotzkanID.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         ArstotzkanID.BACKGROUNDS["label"] = np.asarray(ArstotzkanID.BACKGROUNDS["label"])
@@ -102,7 +102,7 @@ class ArstotzkanID(Document):
             endAt = "kg"
         )[:-2])
     
-    # check note in faceRecognition.py
+    # picture face recognition is not yet implemented
     @Document.field
     def face(self) -> Face:
         return Face.parse(self.docImg.crop(ArstotzkanID.LAYOUT["picture"]), FaceType.ID_PICTURE)

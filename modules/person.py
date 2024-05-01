@@ -8,7 +8,6 @@ class Person:
         self.appearance: Image.Image | None = None
         self.weight: int | None             = None
 
-    # check note in faceRecognition.py
     @BaseDocument.field
     def face(self) -> Face:
         return Face.parse(self.appearance, FaceType.PERSON)

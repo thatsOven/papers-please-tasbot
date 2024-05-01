@@ -74,9 +74,9 @@ class VaxCert(Document):
     @staticmethod
     def load():
         VaxCert.BACKGROUNDS = Document.getBgs(
-            VaxCert.LAYOUT, Image.open(
+            VaxCert.LAYOUT, doubleImage(Image.open(
                 os.path.join(VaxCert.TAS.ASSETS, "papers", "vaxCert.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         VaxCert.BACKGROUNDS["label"] = np.asarray(VaxCert.BACKGROUNDS["label"])

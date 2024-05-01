@@ -33,9 +33,9 @@ class GrantOfAsylum(Document):
     @staticmethod
     def load():
         GrantOfAsylum.BACKGROUNDS = Document.getBgs(
-            GrantOfAsylum.LAYOUT, Image.open(
+            GrantOfAsylum.LAYOUT, doubleImage(Image.open(
                 os.path.join(GrantOfAsylum.TAS.ASSETS, "papers", "grantOfAsylum.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         GrantOfAsylum.BACKGROUNDS["label"] = np.asarray(GrantOfAsylum.BACKGROUNDS["label"])
@@ -113,7 +113,7 @@ class GrantOfAsylum(Document):
     def sealArea(self) -> Image.Image:
         return self.docImg.crop(GrantOfAsylum.LAYOUT["seal-area"])
     
-    # check note in faceRecognition.py
+    # picture face recognition is not yet implemented
     @Document.field
     def face(self) -> Face:
         return Face.parse(self.docImg.crop(GrantOfAsylum.LAYOUT["picture"]), FaceType.GRANT_PICTURE)

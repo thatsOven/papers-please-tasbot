@@ -28,9 +28,9 @@ class IDSupplement(Document):
     @staticmethod
     def load():
         IDSupplement.BACKGROUNDS = Document.getBgs(
-            IDSupplement.LAYOUT, Image.open(
+            IDSupplement.LAYOUT, doubleImage(Image.open(
                 os.path.join(IDSupplement.TAS.ASSETS, "papers", "idSupplement.png")
-            ).convert("RGB")
+            ).convert("RGB"))
         )
 
         IDSupplement.BACKGROUNDS["label"] = np.asarray(IDSupplement.BACKGROUNDS["label"])

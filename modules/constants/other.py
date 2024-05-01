@@ -9,7 +9,7 @@ TEXT_RECOGNITION_TOLERANCE = 4
 PASSPORT_TEXT_COLOR = ( 87,  72,  72) 
 OBRISTAN_TEXT_COLOR = (237, 224, 216)
 
-TRANSCRIPTION_BG_COLOR   = (212, 237, 236)
+TRANSCRIPTION_BG_COLOR   = (210, 237, 236)
 TRANSCRIPTION_TEXT_COLOR = PASSPORT_TEXT_COLOR
 
 # space is first cause end of text will be full of spaces, we want to recognize them first
