@@ -20,6 +20,9 @@ cpdef int getCharLength(object font, str c, bint space):
     if font is STATIC_OBJ._04B03:
         if c == " ": return 3 if space else 2
         return int(font.getlength(c)) - (0 if space else 3)
+
+    if font is STATIC_OBJ.MINI_KYLIE and c == " ":
+        return 3 if space else 2
     
     return int(font.getlength(c)) - (1 if space else 3)
 

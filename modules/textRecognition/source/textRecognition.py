@@ -14,6 +14,9 @@ def getCharLength(font: ImageFont.FreeTypeFont, c: str, space: bool = False) -> 
         if c == " ": return 3 if space else 2
         return int(font.getlength(c)) - (0 if space else 3)
     
+    if font is STATIC_OBJ.MINI_KYLIE and c == " ":
+        return 3 if space else 2
+    
     return int(font.getlength(c)) - (1 if space else 3)
 
 def charCheck(
