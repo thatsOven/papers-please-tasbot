@@ -57,5 +57,5 @@ class NewTAS(TAS):
         time.sleep(MENU_DELAY)
 
     def waitForGiveAreaChange(self, *, update: bool = True, sleep: bool = True) -> None:
-        self.frames.sleep(1) # the new version has some more movement frames that trip the give area change check
+        self.frames.sleep(8) # the new version has some more movement frames that trip the give area change check
         super().waitForGiveAreaChange(update = update, sleep = sleep)

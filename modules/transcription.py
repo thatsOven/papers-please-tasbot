@@ -153,11 +153,18 @@ class Transcription:
 
                 orig = page.crop((0, yTest + 1, page.size[0], yTest + 3))
                 test0 = orig.copy()
-                test1 = orig.copy()
-                test0.paste(  TRANSCRIPTION_BG_COLOR, (0, 0) + test0.size)
-                test1.paste(TRANSCRIPTION_TEXT_COLOR, (0, 0) + test1.size)
+                test1 = orig.copy() 
+                test0.paste(TRANSCRIPTION_BG_COLOR, (0, 0) + test0.size)
 
                 orig = np.asarray(orig)
+
+                xs = np.where(np.isclose(orig, TRANSCRIPTION_TEXT_COLOR, atol = TEXT_RECOGNITION_TOLERANCE).all(axis = -1))[1]
+                if len(xs) == 0:
+                    test1.paste((255, 255, 255), (0, 0) + test1.size)
+                else:
+                    xEnd = max(xs) + 1
+                    test1.paste(TRANSCRIPTION_TEXT_COLOR, (0, 0, xEnd, test1.size[1]))
+                    test1.paste(  TRANSCRIPTION_BG_COLOR, (xEnd, 0) + test1.size)
 
                 if (
                     arrayEQWithTol(orig, np.asarray(test0), TEXT_RECOGNITION_TOLERANCE) or
