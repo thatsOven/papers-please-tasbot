@@ -104,7 +104,7 @@ class Transcription:
                   b = m
             else: a = m + 1
         
-        return page.crop((0, 0, page.size[0], min(a + 10, page.size[1])))
+        return page.crop((0, 0, page.size[0], min(a + 20, page.size[1])))
     
     def __get(self):
         before = np.asarray(self.__tas.getScreen().crop(TABLE_AREA))
@@ -133,12 +133,29 @@ class Transcription:
             box = pg.locate(Transcription.NEXT, fullPage)
             if box is None: break
 
-            self.__currPage  += 1
+            self.__currPage += 1
             self.__tas.click(onTable(pg.center(box)))
             self.__tas.moveTo(TRANSCRIPTION_POS)
 
         self.__putBack()
         return pages
+    
+    def __reduceHorizontal(self, pageStrip: Image.Image) -> int:
+        a = 0
+        b = pageStrip.size[0]
+
+        while a < b:
+            m = a + (b - a) // 2
+
+            box = (m, 0, b, pageStrip.size[1])
+            orig = pageStrip.crop(box)
+            test = orig.copy()
+            test.paste(TRANSCRIPTION_BG_COLOR, (0, 0) + orig.size)
+            if np.array_equal(np.asarray(orig), np.asarray(test)):
+                  b = m
+            else: a = m + 1
+
+        return a
 
     def __getTextBoxes(self, pages: list[Image.Image]) -> list[Message]:
         boxes = []
@@ -160,7 +177,7 @@ class Transcription:
 
                 xs = np.where(np.isclose(orig, TRANSCRIPTION_TEXT_COLOR, atol = TEXT_RECOGNITION_TOLERANCE).all(axis = -1))[1]
                 if len(xs) == 0:
-                    test1.paste((255, 255, 255), (0, 0) + test1.size)
+                    test1.paste(TRANSCRIPTION_BG_COLOR, (0, 0) + test1.size)
                 else:
                     xEnd = max(xs) + 1
                     test1.paste(TRANSCRIPTION_TEXT_COLOR, (0, 0, xEnd, test1.size[1]))
@@ -176,12 +193,17 @@ class Transcription:
                     if arrayEQWithTol(
                         np.asarray(textBox)[0, 0], np.asarray(TRANSCRIPTION_BG_COLOR, dtype = np.uint8), 
                         TEXT_RECOGNITION_TOLERANCE
-                    ):    who = Who.ENTRANT
-                    else: who = Who.INSPECTOR
+                    ):    
+                        who  = Who.ENTRANT
+                        xEnd = textBox.size[0]
+                    else:
+                        who  = Who.INSPECTOR
+                        xEnd = self.__reduceHorizontal(textBox.crop((0, 0, textBox.size[0], 2)))
 
                     boxes.append(Message(
                         who, 
-                        textBox.crop((TRANSCRIPTION_TEXTBOX_TEXT_OFFSET[0], 0) + textBox.size), # removes little left border
+                        # removes little left border and crops extra space on inspector boxes
+                        textBox.crop((TRANSCRIPTION_TEXTBOX_TEXT_OFFSET[0], 0, xEnd, textBox.size[1])), 
                         MessageLoc(pageN, offsetBox(offsetBox(cropBox, TRANSCRIPTION_PAGE_TEXT_AREA[:2]), self.__tableOffs))
                     ))
 
