@@ -22,6 +22,7 @@ DEPENDENCIES = [
     "pywintypes",
     "win32api",
     "winerror",
+    "tas_experimental", # TODO integrate everything into tas.py and remove this
     "tas",
     "backend",
     "modules",
