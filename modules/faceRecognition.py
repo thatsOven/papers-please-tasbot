@@ -120,23 +120,24 @@ class Face:
             Sex.M: {
                 0:  Description.SHORT_HAIR,
                 1:  Description.BALD,
-                2:  Description.DARK_HAIR,
-                3:  Description.BEARD,
-                4:  Description.GOATEE,
-                5:  Description.SHORT_CROPPED_HAIR,
-                6:  Description.BALDING,
+                2:  Description.CROPPED_HAIR,
+                3:  Description.DARK_HAIR,
+                4:  Description.BEARD,
+                5:  Description.GOATEE,
+                6:  Description.SHORT_CROPPED_HAIR,
                 7:  Description.BALDING,
-                8:  Description.SHORT_STRAIGHT_HAIR,
-                9:  Description.SHORT_LIGHT_HAIR,
-                10: Description.WIDOWS_PEAK,
-                11: Description.TALL_FOREHEAD,
-                12: Description.KILLER_SIDEBURNS,
-                13: Description.BOBBED_HAIR,
-                14: Description.SHORT_CURLY_HAIR,
-                15: Description.BALD,
-                16: Description.MOHAWK,
-                17: Description.SHORT_CURLY_HAIR,
-                18: Description.UNKEMPT_CURLY_HAIR
+                8:  Description.BALDING,
+                9:  Description.SHORT_STRAIGHT_HAIR,
+                10: Description.SHORT_LIGHT_HAIR,
+                11: Description.WIDOWS_PEAK,
+                12: Description.TALL_FOREHEAD,
+                13: Description.KILLER_SIDEBURNS,
+                14: Description.BOBBED_HAIR,
+                15: Description.SHORT_CURLY_HAIR,
+                16: Description.BALD,
+                17: Description.MOHAWK,
+                18: Description.SHORT_CURLY_HAIR,
+                19: Description.UNKEMPT_CURLY_HAIR
             }
         }
     }
@@ -263,6 +264,8 @@ class Face:
     @staticmethod
     def fixImage(img: Image.Image) -> Image.Image:
         return halfImage(img)
+    
+    I = 0 # TODO
 
     @staticmethod
     def parse(img: Image.Image, type_: FaceType) -> Self | None:
@@ -286,6 +289,14 @@ class Face:
                 fixed = Face.cropHighest(img, Face.ORIGINAL_FG_COLOR, Face.ID_WANTED_CROP_AMT) 
 
         face = Face.TABLES[type_].get(md5(fixed.tobytes()).digest())
+
+        # TODO
+        if face is None and type_ == FaceType.PERSON:
+            img.save(f"unrecognized-{Face.I}-orig.png")
+            fixed.save(f"unrecognized-{Face.I}-fixed.png")
+            with open(f"unrecognized-{Face.I}-md5.txt", "w") as f:
+                f.write(md5(fixed.tobytes()).hexdigest())
+            Face.I += 1
         
         if heightPx is not None:
             if face is None: return None

@@ -265,6 +265,8 @@ class AllEndings(Run):
         self.tas.daySetup()
 
         # supervisor (just wait, basically)
+        self.tas.shutter = True
+        self.tas.person.weight = 0
         self.tas.waitForGiveAreaChange(sleep = False)
 
         self.tas.day8Check()
@@ -318,6 +320,8 @@ class AllEndings(Run):
         self.tas.daySetup()
 
         # vonel asks about ezic
+        self.tas.shutter = True
+        self.tas.person.weight = 0
         self.tas.lastGiveArea = np.asarray(self.tas.getScreen().crop(GIVE_AREA))
         for _ in range(2):
             self.tas.waitForGiveAreaChange(update = False)
@@ -993,6 +997,148 @@ class AllEndings(Run):
         self.day12(ending3 = True, burn = False)
         self.tas.ending3()
 
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[0]), AllEndings.DAY_12)
+        self.day12(ending3 = False, burn = False)
+        self.day13(safe = True)
+        self.day14(safe = True, messenger = True, ezic = False)
+        self.day15(ending4 = True)
+        self.tas.ending4()
+
+        self.tas.restartFrom((DAYS_X[-4], DAYS_Y[0]), AllEndings.DAY_12)
+        self.day12(ending3 = False, burn = True)
+        self.day13(safe = False)
+        self.day14(safe = False, messenger = False, ezic = True)
+        self.day15(ending4 = False)
+        self.day16()
+        self.day17(ezic = True)
+        self.day18()
+        self.day19()
+        self.day20(banner = True, poison4 = False)
+        self.day21()
+        self.day22(pennantOnWall = True)
+        self.day23(mode = Day23Mode.KILL_RED)
+        self.tas.ending9()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
+        self.day23(mode = Day23Mode.TRANQ_RED)
+        self.tas.ending10()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
+        self.day23(mode = Day23Mode.DEFAULT)
+        self.day24()
+        self.day25(shae = False, bills = True)
+        self.day26(ending12 = True, bills = True)
+        self.tas.ending12()
+
+        self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), self.tas.DAY_25)
+        self.day25(shae = True, bills = False)
+        self.day26(ending12 = False, bills = False)
+        self.day27(ezic = True, bills = False)
+        self.day28(mode = Day28Mode.KILL_CIVILIAN, bills = True)
+        self.tas.ending5() 
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        self.day28(mode = Day28Mode.TRANQ_CIVILIAN, bills = True)
+        self.tas.ending6()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        self.day28(mode = Day28Mode.KILL_GUARD, bills = True)
+        self.tas.ending7()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        self.day28(mode = Day28Mode.TRANQ_GUARD, bills = True)
+        self.tas.ending8()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        self.day28(mode = Day28Mode.DEFAULT, bills = False)
+        self.tas.ending2()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        self.day28(mode = Day28Mode.DEFAULT, bills = True)
+        self.day29(getObri = False)
+        self.day30(familyPic = True, givePhoto = False)
+        self.tas.ending11()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_30)
+        self.day30(familyPic = False, givePhoto = False)
+        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.ALONE, ezic = True)
+        self.tas.ending16()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.NO, ezic = True)
+        self.tas.ending14()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        self.day31(shootMode = Day31ShootMode.YES, escapeMode = Day31EscapeMode.NO, ezic = True)
+        self.tas.ending15()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        self.day31(shootMode = Day31ShootMode.NO, escapeMode = Day31EscapeMode.NO, ezic = True)
+        self.tas.ending19()
+
+        self.tas.restartFrom((DAYS_X[-5], DAYS_Y[2]), self.tas.DAY_27)
+        self.day27(ezic = False, bills = True)
+        self.day28(mode = Day28Mode.DEFAULT, bills = True)
+        self.day29(getObri = True)
+        self.day30(familyPic = False, givePhoto = True)
+        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.WIFE, ezic = False)
+        self.tas.ending18()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[3]), AllEndings.DAY_31)
+        self.day31(shootMode = Day31ShootMode.YES, escapeMode = Day31EscapeMode.NO, ezic = False)
+        self.tas.ending13()
+
+        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[3]), AllEndings.DAY_31)
+        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.NO, ezic = False)
+        self.tas.ending17()
+
+        self.tas.story()
+        # scroll back
+        for _ in range(2):
+            self.tas.moveTo((DAYS_X[ 0], DAYS_Y[4]))
+            self.tas.dragTo((DAYS_X[-1], DAYS_Y[4]))
+        self.tas.restartFrom((DAYS_X[4], DAYS_Y[1]), self.tas.DAY_14, story = False)
+        self.day14(safe = False, messenger = False, ezic = False)
+        self.day15(ending4 = False)
+        self.day16()
+        self.day17(ezic = False)
+        self.day18()
+        self.day19()
+        self.day20(banner = False, poison4 = True)
+        self.day21()
+        self.day22(pennantOnWall = False)
+        self.day23(mode = Day23Mode.DEFAULT)
+        self.day24()
+        self.day25(shae = True, bills = True)
+        self.day26(ending12 = False, bills = True)
+        self.day27(ezic = False, bills = True)
+        self.day28(mode = Day28Mode.DEFAULT, bills = True)
+        self.day29(getObri = False)
+        self.day30(familyPic = False, givePhoto = False)
+        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.NO, ezic = False)
+        self.tas.ending20()
+
+    def test(self):
+        # self.tas.newGame()
+        # self.day1()
+        # self.day2(ending1 = True)
+        # self.tas.ending1()
+
+        # self.tas.restartFrom((DAYS_X[1], DAYS_Y[0]), self.tas.DAY_2)
+        # self.day2(ending1 = False)
+        # self.day3()
+        # self.day4()
+        # self.day5()
+        # self.day6()
+        # self.day7()
+        # self.day8()
+        # self.day9()        
+        # self.day10()
+        # self.day11()
+        # self.day12(ending3 = True, burn = False)
+        # self.tas.ending3()
+
+        self.tas.startRun()
         self.tas.restartFrom((DAYS_X[-1], DAYS_Y[0]), AllEndings.DAY_12)
         self.day12(ending3 = False, burn = False)
         self.day13(safe = True)
