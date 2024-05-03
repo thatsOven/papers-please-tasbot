@@ -107,8 +107,8 @@ class Transcription:
         return page.crop((0, 0, page.size[0], min(a + 20, page.size[1])))
     
     def __get(self):
-        before = np.asarray(self.__tas.getScreen().crop(TABLE_AREA))
         self.__tas.moveTo(TRANSCRIPTION_POS)
+        before = np.asarray(self.__tas.getScreen().crop(TABLE_AREA))
         self.__tas.dragTo(PAPER_SCAN_POS)
         self.__tas.moveTo(TRANSCRIPTION_POS) # move cursor out of the way
         return before

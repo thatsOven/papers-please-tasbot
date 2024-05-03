@@ -41,11 +41,12 @@ class Face:
     ID_PICTURE_BG_COLOR: ClassVar[tuple[int, int, int]]    = (178, 156, 204)
     GRANT_PICTURE_FG_COLOR: ClassVar[tuple[int, int, int]] = (125, 109, 121)
 
-    PASSPORT_CROP_AMT: ClassVar[int]  = 33
-    GRANT_CROP_AMT: ClassVar[int]     = 53
-    ID_WANTED_CROP_AMT: ClassVar[int] = 30 
+    PASSPORT_CROP_AMT: ClassVar[int]       = 33
+    GRANT_CROP_AMT: ClassVar[int]          = 53
+    ID_WANTED_CROP_AMT: ClassVar[int]      = 30 
+    MISSING_LOWER_HEIGHT_PX: ClassVar[int] = 5 
 
-    CM_PER_PIXEL: ClassVar[float] = 0.909
+    CM_PER_PIXEL: ClassVar[float] = 0.9091
     MIN_HEIGHT:   ClassVar[float] = 100.0
 
     PALETTES: ClassVar[tuple[tuple[tuple[int, int, int], ...], ...]] = (
@@ -186,8 +187,8 @@ class Face:
         Face.TABLES[FaceType.WANTED_PICTURE] = Face.TABLES[FaceType.ID_PICTURE]
     
     @staticmethod
-    def getHeightFromY(y: float, hairHeight: int) -> float:
-        return round((y - hairHeight) * Face.CM_PER_PIXEL + Face.MIN_HEIGHT, 2)
+    def getHeightFromY(y: float, hairHeight: int) -> int:
+        return round((y + Face.MISSING_LOWER_HEIGHT_PX - hairHeight) * Face.CM_PER_PIXEL + Face.MIN_HEIGHT)
     
     @staticmethod
     def __checkMask(color: tuple[int, int, int], img: np.ndarray) -> bool:
@@ -304,7 +305,7 @@ class Face:
 
         return face
     
-    def __init__(self, sex: Sex, noseMouth: int, eyes: int, head: int, height: float | None = None):
+    def __init__(self, sex: Sex, noseMouth: int, eyes: int, head: int, height: int | None = None):
         self.sex       = sex
         self.noseMouth = noseMouth
         self.head      = head

@@ -1140,13 +1140,12 @@ class AllEndings(Run):
 
         # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[0]), AllEndings.DAY_12)
         # self.day12(ending3 = False, burn = False)
-        self.tas.date = date(1982, 12, 5)
-        self.tas.startRun()
-        self.day13(safe = True)
-        self.day14(safe = True, messenger = True, ezic = False)
-        self.day15(ending4 = True)
-        self.tas.ending4()
+        # self.day13(safe = True)
+        # self.day14(safe = True, messenger = True, ezic = False)
+        # self.day15(ending4 = True)
+        # self.tas.ending4()
 
+        self.tas.startRun()
         self.tas.restartFrom((DAYS_X[-4], DAYS_Y[0]), AllEndings.DAY_12)
         self.day12(ending3 = False, burn = True)
         self.day13(safe = False)
