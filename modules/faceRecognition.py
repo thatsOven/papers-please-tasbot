@@ -258,7 +258,7 @@ class Face:
     @staticmethod
     def cropHighest(image: Image.Image, color: tuple[int, int, int], cropAmt: int) -> Image.Image:
         y = min(np.where((np.asarray(image) == color).all(axis = -1))[0])
-        return image.crop((0, y, image.size[0], y + cropAmt))
+        return image.crop((0, y, image.size[0], min(y + cropAmt, image.size[1])))
 
     # this would have to be patched for different scalings (this game version uses 2x2 squares for each pixel)
     @staticmethod
