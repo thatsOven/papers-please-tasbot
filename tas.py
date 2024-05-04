@@ -21,6 +21,7 @@
 # SOFTWARE.
 
 # **TODO**
+# - if wanted is found and detain flag is true, interrogate and set transcription detainable flag to true
 # - skip end menu fade on endings
 # - check for end of day via day duration instead of using sleep button
 # - figure out occasional parsing errors in transcription and text recognition rare bugs

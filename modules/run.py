@@ -191,7 +191,7 @@ class Run(ABC):
 
             return False
         
-        if self.arstotzkanIDConfiscateCheck() and not self.tas.doConfiscate:
+        if self.arstotzkanIDConfiscateCheck(doc) and not self.tas.doConfiscate:
             self.tas.skipReason = True
             return True
         

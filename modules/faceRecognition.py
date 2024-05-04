@@ -44,7 +44,8 @@ class Face:
     PASSPORT_CROP_AMT: ClassVar[int]       = 33
     GRANT_CROP_AMT: ClassVar[int]          = 53
     ID_WANTED_CROP_AMT: ClassVar[int]      = 30 
-    MISSING_LOWER_HEIGHT_PX: ClassVar[int] = 5 
+    MISSING_LOWER_HEIGHT_PX: ClassVar[int] = 5
+    HEIGHT_TOLERANCE_CM: ClassVar[int]     = 1
 
     CM_PER_PIXEL: ClassVar[float] = 0.9091
     MIN_HEIGHT:   ClassVar[float] = 100.0
@@ -321,6 +322,9 @@ class Face:
             if key in dict_: result.add(dict_[key])
 
         return result
+    
+    def checkValidHeight(self, height: int) -> bool:
+        return self.height - Face.HEIGHT_TOLERANCE_CM <= height <= self.height + Face.HEIGHT_TOLERANCE_CM
 
     def __ne__(self, other) -> bool:
         if type(other) is not Face:

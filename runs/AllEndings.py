@@ -563,6 +563,7 @@ class AllEndings(Run):
             self.tas.dragTo(PERSON_POS)
 
         # supervisor (just wait, basically)
+        self.tas.person.weight = 0
         self.tas.waitForGiveAreaChange(sleep = False)
 
         self.tas.multiDocAction(True)
@@ -597,8 +598,13 @@ class AllEndings(Run):
         # watch person
         self.tas.skipGive = True
         self.tas.passportOnlyDeny()
+        # for some reason, passport gets launched to the left side of the counter
+        # so put it in the center
+        time.sleep(0.5)
+        self.tas.moveTo(CLEANUP_POS) 
+        self.tas.dragTo(PAPER_POS)
         tmp = self.tas.lastGiveArea
-        time.sleep(1)
+        time.sleep(0.5)
         for i in range(2):
             self.tas.waitForGiveAreaChange()
             self.tas.moveTo(PAPER_POS)
@@ -1153,22 +1159,22 @@ class AllEndings(Run):
         # self.day16()
         # self.day17(ezic = True)
         # self.day18()
+        # self.day19()
+        # self.day20(banner = True, poison4 = False)
+        # self.day21()
+        # self.day22(pennantOnWall = True)
+        # self.day23(mode = Day23Mode.KILL_RED)
+        # self.tas.ending9()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
+        # self.day23(mode = Day23Mode.TRANQ_RED)
+        # self.tas.ending10()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
+        # self.day23(mode = Day23Mode.DEFAULT)
+        # self.day24()
         self.tas.startRun()
-        self.tas.date = date(1982, 12, 11)
-        self.day19()
-        self.day20(banner = True, poison4 = False)
-        self.day21()
-        self.day22(pennantOnWall = True)
-        self.day23(mode = Day23Mode.KILL_RED)
-        self.tas.ending9()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
-        self.day23(mode = Day23Mode.TRANQ_RED)
-        self.tas.ending10()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
-        self.day23(mode = Day23Mode.DEFAULT)
-        self.day24()
+        self.tas.date = date(1982, 12, 17)
         self.day25(shae = False, bills = True)
         self.day26(ending12 = True, bills = True)
         self.tas.ending12()
