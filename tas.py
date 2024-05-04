@@ -35,7 +35,7 @@ from datetime          import date, timedelta
 from skimage.color     import rgb2gray
 from skimage.transform import rotate
 from typing            import Callable, ClassVar, Type, TYPE_CHECKING
-import platform, time, os, math, pyautogui as pg, numpy as np
+import platform, time, os, sys, math, pyautogui as pg, numpy as np
 
 from modules.constants.delays import *
 from modules.constants.screen import *
@@ -243,9 +243,6 @@ class TAS:
         TAS.SCREW = Image.open(
             os.path.join(TAS.ASSETS, "screw.png")
         ).convert("RGB")
-        TAS.WIRES = Image.open(
-            os.path.join(TAS.ASSETS, "wires.png")
-        ).convert("RGB")
         TAS.TRANQ_GUN_KEYHOLE = Image.open(
             os.path.join(TAS.ASSETS, "tranqGunKeyHole.png")
         ).convert("RGB")
@@ -267,6 +264,11 @@ class TAS:
         TAS.CLOSE_BUTTON = Image.open(
             os.path.join(TAS.ASSETS, "closeButton.png")
         ).convert("RGB")
+
+        wires = Image.open(
+            os.path.join(TAS.ASSETS, "wires.png")
+        ).convert("RGB")
+        TAS.WIRES = wires.resize((wires.size[0] // 3 * 2, wires.size[1] // 3 * 2), Image.Resampling.NEAREST)
 
         sealsPath = os.path.join(TAS.ASSETS, "sealsMOA")
         TAS.MOA_SEALS = tuple(
@@ -692,7 +694,15 @@ class TAS:
         self.transcription.reset()
         
         self.person.reset(appearance)
-        if TAS.SETTINGS["debug"]: logger.info(self.person)
+
+        if TAS.SETTINGS["debug"]: 
+            # cool trick to get caller function name without the code being implementation-dependent
+            try: raise Exception
+            except Exception:
+                caller = sys.exc_info()[2].tb_frame.f_back.f_code.co_name
+
+            if caller != "next":
+                logger.info(self.person.face)
 
         return True
 
@@ -727,6 +737,8 @@ class TAS:
             
             self.person.weight = int(weightCheck)
             self.wrongWeight = False
+
+            if TAS.SETTINGS["debug"]: logger.info(self.person) 
             return False
         
         return True
@@ -1091,8 +1103,10 @@ class TAS:
         self.denyAndGive()
 
         return True
+    
+    I = 0 # TODO
 
-    def docScan(self, *, move: bool = True) -> Document | Passport | Nation | None:
+    def docScan(self, *, move: bool = True) -> Document | Passport | None:
         """Drags the next document from the left counter and scans it, returning the appropriate document object.
 
 
@@ -1109,6 +1123,10 @@ class TAS:
         ys, xs = np.where((docImg != (0, 0, 0)).all(axis = -1))
         offs = (min(xs), min(ys))
         docImg = Image.fromarray(docImg).crop(offs + (max(xs) + 1, max(ys) + 1))
+
+        # TODO
+        # docImg.save(f"doc{TAS.I}.png")
+        # TAS.I += 1
 
         for Document in TAS.DOCUMENTS:
             if Document.checkMatch(docImg):
@@ -1146,8 +1164,6 @@ class TAS:
                 type_ = passportType
                 break
         else: return None
-
-        if self.date == TAS.DAY_1: return type_.nation
 
         passport = Passport(docImg, offs, type_)
 
@@ -1624,9 +1640,9 @@ class TAS:
         time.sleep(0.25)
         # unscrew
         self.click((695, 405))
-        self.click((800, 405))
+        self.click((810, 405))
         self.click((695, 490))
-        self.click((800, 490))
+        self.click((810, 490))
         # wait for wires and calensk
         while pg.locate(TAS.WIRES, self.getScreen().crop(TABLE_AREA)) is None: pass
         while pg.locate(TAS.WIRES, self.getScreen().crop(TABLE_AREA)) is not None:
@@ -1635,9 +1651,9 @@ class TAS:
             self.moveTo(TABLE_AREA[:2])
         # when cutting first wire succeeds, wires is no longer located, 
         # so it falls here and cuts all other wires
-        self.click((700, 440))
-        self.click((785, 440))
-        self.click((760, 440))
+        self.click((688, 440))
+        self.click((816, 440))
+        self.click((770, 440))
         # give bomb to calensk
         self.dragTo(PAPER_POS)
         self.giveAllGiveAreaDocs(self.lastGiveArea, delay = True)
@@ -2089,7 +2105,7 @@ class TAS:
 
         if nation is None:
             fastScan = False
-            nation = self.docScan()
+            nation = self.docScan().type_.nation
         else:
             fastScan = True
             self.moveTo(PAPER_POS)
