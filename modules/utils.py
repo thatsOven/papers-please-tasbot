@@ -2,7 +2,7 @@ from PIL       import Image
 from typing    import Self
 from functools import total_ordering
 from datetime  import date, timedelta
-import cv2, numpy as np
+import numpy as np
 
 from modules.constants.screen import *
 
@@ -10,6 +10,11 @@ def bgFilter(before: np.ndarray, after: np.ndarray) -> np.ndarray:
     res = after.copy()
     res[np.all(after == before, axis = -1)] = [0, 0, 0]
     return res
+
+def isolateNew(before: np.ndarray, after: np.ndarray) -> tuple[Image.Image, tuple[int, int]]:
+    ys, xs = np.where((before != after).all(axis = -1))
+    offs = (min(xs), min(ys))
+    return Image.fromarray(after).crop(offs + (max(xs) + 1, max(ys) + 1)), offs
 
 def centerOf(box: tuple[int, int, int, int]) -> tuple[int, int]:
     return (box[0] + (box[2] - box[0]) // 2, box[1] + (box[3] - box[1]) // 2)

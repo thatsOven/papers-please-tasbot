@@ -123,11 +123,7 @@ class Transcription:
         
         pages = []
         while True:
-            img = bgFilter(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
-            ys, xs = np.where((img != (0, 0, 0)).all(axis = -1))
-            self.__tableOffs = (min(xs), min(ys))
-            fullPage = Image.fromarray(img).crop(self.__tableOffs + (max(xs) + 1, max(ys) + 1))
-
+            fullPage, self.__tableOffs = isolateNew(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
             pages.append(self.__reducePage(fullPage.crop(TRANSCRIPTION_PAGE_TEXT_AREA)))
 
             box = pg.locate(Transcription.NEXT, fullPage)
@@ -155,7 +151,7 @@ class Transcription:
                   b = m
             else: a = m + 1
 
-        return a
+        return min(a + 10, pageStrip.size[0])
 
     def __getTextBoxes(self, pages: list[Image.Image]) -> list[Message]:
         boxes = []
@@ -336,15 +332,13 @@ class Transcription:
 
             if self.__currPage < field.message.at.page:    
                 while self.__currPage < field.message.at.page:
-                    self.__tas.click(onTable(pg.center(pg.locate(Transcription.NEXT, Image.fromarray(
-                        bgFilter(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
-                    )))))
+                    img, offs = isolateNew(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
+                    self.__tas.click(onTable(offsetPoint(pg.center(pg.locate(Transcription.NEXT, img)), offs)))
                     self.__currPage += 1
             else:
                 while self.__currPage > field.message.at.page:
-                    self.__tas.click(onTable(pg.center(pg.locate(Transcription.BACK, Image.fromarray(
-                        bgFilter(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
-                    )))))
+                    img, offs = isolateNew(before, np.asarray(self.__tas.getScreen().crop(TABLE_AREA)))
+                    self.__tas.click(onTable(offsetPoint(pg.center(pg.locate(Transcription.BACK, img)), offs)))
                     self.__currPage -= 1
 
             self.__putBack()

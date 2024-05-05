@@ -32,7 +32,7 @@ class ArstotzkanID(Document):
     DISTRICT_TEXT_COLOR = (217, 189, 247)
     TEXT_COLOR          = ( 61,  57,  77)
     LAYOUT = {
-        'label': (0, 0, 252, 22),
+        'label': (10, 0, 240, 22),
         'district': (6, 22, 244, 34),
         'last-name': (100, 40, 244, 52),
         'first-name': (100, 56, 244, 66),

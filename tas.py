@@ -116,7 +116,6 @@ class TAS:
     MATCHING_DATA_LINES: ClassVar[Image.Image]   = None
     VISA_SLIP: ClassVar[Image.Image]             = None
     WEIGHT_BG: ClassVar[np.ndarray]              = None
-    WEIGHT_FILTER: ClassVar[np.ndarray]          = None
     BUTTONS: ClassVar[dict[str, Image.Image]]    = None
     DOLLAR_SIGN: ClassVar[Image.Image]           = None
     WANTED_CRIMINALS: ClassVar[Image.Image]      = None
@@ -227,14 +226,9 @@ class TAS:
             os.path.join(TAS.ASSETS, "papers", "SeizureSlipInner.png")
         ).convert("RGB")))
 
-        weightBg = Image.open(
+        TAS.WEIGHT_BG = np.asarray(Image.open(
             os.path.join(TAS.ASSETS, "weightBG.png")
-        ).convert("RGB")
-        weightFilter = weightBg.copy()
-        weightFilter.paste((255, 255, 255), (0, 0) + weightFilter.size)
-        TAS.WEIGHT_BG = np.asarray(weightBg)
-        TAS.WEIGHT_FILTER = weightFilter
-
+        ).convert("RGB"))
         TAS.DOLLAR_SIGN = Image.open(
             os.path.join(TAS.ASSETS, "dollarSign.png")
         ).convert("RGB")
@@ -725,10 +719,11 @@ class TAS:
 
             # this converts the colored image from the screenshot to an image with
             # black background and white text (so it's easier to compare to the digits' images)
-            diff = bgFilter(TAS.WEIGHT_BG, np.asarray(self.getScreen().crop(WEIGHT_AREA)))
-            np.copyto(diff, TAS.WEIGHT_FILTER, where = diff != 0)
+            weight = np.asarray(self.getScreen().crop(WEIGHT_AREA)).copy()
+            weight[(TAS.WEIGHT_BG != weight).all(axis = -1)] = (255, 255, 255)
+            weight[(TAS.WEIGHT_BG == weight).all(axis = -1)] = (  0,   0,   0)
             weightCheck = parseText(
-                Image.fromarray(diff), None, TAS.FONTS["digits"], None,
+                Image.fromarray(weight), None, TAS.FONTS["digits"], None,
                 DIGITS, checkFn = digitCheck, lenFn = digitLength
             )
 
@@ -1119,15 +1114,11 @@ class TAS:
         if move: self.moveTo(PAPER_POS)
         self.dragTo(PAPER_SCAN_POS)
         self.moveTo(PAPER_POS) # get cursor out of the way
-        docImg = bgFilter(before, np.asarray(self.getScreen().crop(TABLE_AREA)))
-        # only crop document out of picture
-        ys, xs = np.where((docImg != (0, 0, 0)).all(axis = -1))
-        offs = (min(xs), min(ys))
-        docImg = Image.fromarray(docImg).crop(offs + (max(xs) + 1, max(ys) + 1))
+        docImg, offs = isolateNew(before, np.asarray(self.getScreen().crop(TABLE_AREA)))
 
         # TODO
-        # docImg.save(f"doc{TAS.I}.png")
-        # TAS.I += 1
+        docImg.save(f"doc{TAS.I}.png")
+        TAS.I += 1
 
         for Document in TAS.DOCUMENTS:
             if Document.checkMatch(docImg):
@@ -1573,6 +1564,7 @@ class TAS:
                 doc = self.docScan()
 
                 discrepancy = self.checkDiscrepancies(doc)
+                logger.info("pushing missing doc in document stack") # TODO weird bug with id card, needs testing
                 self.moveTo(PAPER_SCAN_POS)
                 self.documentStack.push(doc)
                 if not discrepancy: 
