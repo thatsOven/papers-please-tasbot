@@ -20,6 +20,9 @@ class Person:
         if appearance is None:
             self.weight = None
 
+    def checkValidHeight(self, height: int) -> bool:
+        return self.face is None or self.face.height - Face.HEIGHT_TOLERANCE_CM <= height <= self.face.height + Face.HEIGHT_TOLERANCE_CM
+
     def __repr__(self) -> str:
         return f"""==- Person -==
 face:   {self.face}

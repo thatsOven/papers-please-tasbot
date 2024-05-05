@@ -322,9 +322,6 @@ class Face:
             if key in dict_: result.add(dict_[key])
 
         return result
-    
-    def checkValidHeight(self, height: int) -> bool:
-        return self.height - Face.HEIGHT_TOLERANCE_CM <= height <= self.height + Face.HEIGHT_TOLERANCE_CM
 
     def __ne__(self, other) -> bool:
         if type(other) is not Face:
