@@ -28,6 +28,9 @@ class Vaccine(BaseDocument):
         "disease": (94, 6, 202, 18)
     }
 
+    def __init__(self, docImg: Image.Image):
+        super().__init__(docImg, (0, 0))
+
     @staticmethod
     def load(fullBg: Image.Image):
         Vaccine.BACKGROUNDS = Document.getBgs(Vaccine.LAYOUT, fullBg)

@@ -123,35 +123,23 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.APPEARANCE_HEIGHT_CHECK:
+        if not self.tas.person.checkValidHeight(doc.height):
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
             self.tas.click(PERSON_POS)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA, msg) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
-            
-            self.tas.click(onTable(textFieldOffset(doc.getTableBox("description"))))
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
-
-            self.tas.click(INSPECT_BUTTON)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
             self.tas.moveTo(PAPER_SCAN_POS)
+            return True
+        
+        if not self.tas.person.checkValidDescription(doc.description):
+            self.tas.click(INSPECT_BUTTON)
+            self.tas.click(onTable(textFieldOffset(doc.getTableBox("description"))))
+            self.tas.click(PERSON_POS)
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
+            self.tas.moveTo(PAPER_SCAN_POS)
+            return True
 
         return False
     
@@ -162,6 +150,9 @@ class Run(ABC):
         
         if self.tas.date < self.tas.DAY_18:
             if doc.district == District.UNKNOWN or self.tas.person.weight != doc.weight:
+                return True
+            
+            if not self.tas.person.checkValidHeight(doc.height):
                 return True
             
             if self.tas.ID_CHECK:
@@ -178,16 +169,6 @@ class Run(ABC):
                     time.sleep(INSPECT_ALPHACHANGE_TIME)
                     self.tas.moveTo(PAPER_SCAN_POS)
                     return True
-                
-                self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
-                before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-                time.sleep(INSPECT_TIME)
-                msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-                self.tas.click(INSPECT_BUTTON)
-                time.sleep(INSPECT_ALPHACHANGE_TIME)
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None
 
             return False
         
@@ -199,6 +180,15 @@ class Run(ABC):
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(doc.getTableBox("weight"))))
             self.tas.click(centerOf(WEIGHT_AREA))
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
+            self.tas.moveTo(PAPER_SCAN_POS)
+            return True
+        
+        if not self.tas.person.checkValidHeight(doc.height):
+            self.tas.click(INSPECT_BUTTON)
+            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
+            self.tas.click(PERSON_POS)
             time.sleep(INSPECT_INTERROGATE_TIME)
             self.tas.interrogate()
             self.tas.moveTo(PAPER_SCAN_POS)
@@ -248,17 +238,6 @@ class Run(ABC):
             msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
             
             if pg.locate(self.tas.MATCHING_DATA, msg) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
-            
-            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None:
                 time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
                 self.tas.interrogate()
                 self.tas.moveTo(PAPER_SCAN_POS)
@@ -448,6 +427,15 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
+        if not self.tas.person.checkValidHeight(doc.height):
+            self.tas.click(INSPECT_BUTTON)
+            self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
+            self.tas.click(PERSON_POS)
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
+            self.tas.moveTo(PAPER_SCAN_POS)
+            return True
+        
         if doc.checkForgery():
             self.tas.moveTo(PAPER_SCAN_POS)
             self.tas.dragTo(RIGHT_SCAN_SLOT)
@@ -506,17 +494,6 @@ class Run(ABC):
                 self.tas.interrogate()
                 self.tas.moveTo(PAPER_SCAN_POS)
                 return True
-            
-            self.tas.click(onTable(textFieldOffset(doc.getTableBox("height"))))
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
 
             self.tas.click(INSPECT_BUTTON)
             time.sleep(INSPECT_ALPHACHANGE_TIME)
@@ -532,34 +509,11 @@ class Run(ABC):
         if self.tas.date < self.tas.DAY_18:
             if (
                 doc.expiration <= self.tas.date or
-                self.tas.person.weight != doc.weight
+                self.tas.person.weight != doc.weight or
+                (not self.tas.person.checkValidHeight(doc.height)) or
+                (not self.tas.person.checkValidDescription(doc.description))
             ): return True
 
-            if self.tas.APPEARANCE_HEIGHT_CHECK:
-                self.tas.click(INSPECT_BUTTON)
-                self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
-                self.tas.click(PERSON_POS)
-                time.sleep(INSPECT_ALPHACHANGE_TIME)
-                before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-                time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
-                msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-                if pg.locate(self.tas.MATCHING_DATA, msg) is None:
-                    self.tas.click(INSPECT_BUTTON)
-                    time.sleep(INSPECT_ALPHACHANGE_TIME)
-                    self.tas.moveTo(PAPER_SCAN_POS)
-                    return True
-                
-                self.tas.click(onTable(textFieldOffset(doc.getTableBox("description-0")[:2])))
-                before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-                time.sleep(INSPECT_TIME)
-                msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-                self.tas.click(INSPECT_BUTTON)
-                time.sleep(INSPECT_ALPHACHANGE_TIME)
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None
-            
             return False
     
         if doc.expiration <= self.tas.date:
@@ -580,35 +534,23 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.APPEARANCE_HEIGHT_CHECK:
+        if not self.tas.person.checkValidHeight(doc.height):
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(doc.getTableBox("height"))))
             self.tas.click(PERSON_POS)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME - INSPECT_ALPHACHANGE_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA, msg) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
-            
-            self.tas.click(onTable(textFieldOffset(doc.getTableBox("description-0")[:2])))
-            before = np.asarray(self.tas.getScreen().crop(TABLE_AREA))
-            time.sleep(INSPECT_TIME)
-            msg = bgFilter(before, np.asarray(self.tas.getScreen().crop(TABLE_AREA)))
-
-            if pg.locate(self.tas.MATCHING_DATA_LINES, msg, confidence = 0.8) is None:
-                time.sleep(INSPECT_INTERROGATE_TIME - INSPECT_TIME)
-                self.tas.interrogate()
-                self.tas.moveTo(PAPER_SCAN_POS)
-                return True
-
-            self.tas.click(INSPECT_BUTTON)
-            time.sleep(INSPECT_ALPHACHANGE_TIME)
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
             self.tas.moveTo(PAPER_SCAN_POS)
+            return True
+
+        if not self.tas.person.checkValidDescription(doc.description):
+            self.tas.click(INSPECT_BUTTON)
+            self.tas.click(onTable(centerOf(doc.getTableBox("description-0"))))
+            self.tas.click(PERSON_POS)
+            time.sleep(INSPECT_INTERROGATE_TIME)
+            self.tas.interrogate()
+            self.tas.moveTo(PAPER_SCAN_POS)
+            return True
 
         return False
     

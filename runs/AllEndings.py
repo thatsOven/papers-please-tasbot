@@ -756,9 +756,10 @@ class AllEndings(Run):
         self.tas.next()
         self.tas.getTranqGun()
         # shoot attackers
-        self.tas.click((470, 125))
-        self.tas.click((705, 145))
-        self.tas.click((620, 195))
+        first = self.tas.detectPeople(DAY_26_NDBIKE_AREA)[-1]
+        self.tas.click((first[0] - 20, first[1] - 15))
+        self.tas.click((620, 200))
+        self.tas.click((340, 110)) # this attacker is actually bugged and gets teleported back for some reason
         
         self.tas.waitForSleepButton()
 
@@ -1173,15 +1174,15 @@ class AllEndings(Run):
         # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[1]), AllEndings.DAY_23) 
         # self.day23(mode = Day23Mode.DEFAULT)
         # self.day24()
-        self.tas.startRun()
-        self.tas.date = date(1982, 12, 17)
-        self.day25(shae = False, bills = True)
-        self.day26(ending12 = True, bills = True)
-        self.tas.ending12()
+        # self.day25(shae = False, bills = True)
+        # self.day26(ending12 = True, bills = True)
+        # self.tas.ending12()
 
-        self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), self.tas.DAY_25)
-        self.day25(shae = True, bills = False)
-        self.day26(ending12 = False, bills = False)
+        # self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), self.tas.DAY_25)
+        # self.day25(shae = True, bills = False)
+        # self.day26(ending12 = False, bills = False)
+        self.tas.startRun()
+        self.tas.date = date(1982, 12, 19)
         self.day27(ezic = True, bills = False)
         self.day28(mode = Day28Mode.KILL_CIVILIAN, bills = True)
         self.tas.ending5() 

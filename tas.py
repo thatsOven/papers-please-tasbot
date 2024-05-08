@@ -47,7 +47,8 @@ from modules.textRecognition          import STATIC_OBJ, parseText, digitCheck, 
 from modules.faceRecognition          import Face
 from modules.transcription            import Transcription
 from modules.person                   import Person
-from modules.documentStack            import DocumentStack, TASException
+from modules.frames                   import Frames
+from modules.documentStack            import DocumentStack
 from modules.documents.document       import Document, BaseDocument
 from modules.documents.entryTicket    import EntryTicket
 from modules.documents.entryPermit    import EntryPermit
@@ -200,6 +201,7 @@ class TAS:
 
         self.currRun = None
         
+        self.frames        = Frames()
         self.person        = Person()
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
@@ -1117,8 +1119,8 @@ class TAS:
         docImg, offs = isolateNew(before, np.asarray(self.getScreen().crop(TABLE_AREA)))
 
         # TODO
-        docImg.save(f"doc{TAS.I}.png")
-        TAS.I += 1
+        # docImg.save(f"doc{TAS.I}.png")
+        # TAS.I += 1
 
         for Document in TAS.DOCUMENTS:
             if Document.checkMatch(docImg):
@@ -1558,13 +1560,17 @@ class TAS:
         if self.newData:
             tmp = self.lastGiveArea
             self.lastGiveArea = np.asarray(self.getScreen().crop(GIVE_AREA))
+
+            if not self.documentStack.moved:
+                self.documentStack.moved = True
+                self.moveTo(PAPER_SCAN_POS)
+                self.dragTo(SLOTS[0])
             
             if self.transcription.waitFor(lambda: self.transcription.getMissingDocGiven(Type_.__name__)):
                 self.waitForGiveAreaChange(update = False)
                 doc = self.docScan()
 
                 discrepancy = self.checkDiscrepancies(doc)
-                logger.info("pushing missing doc in document stack") # TODO weird bug with id card, needs testing
                 self.moveTo(PAPER_SCAN_POS)
                 self.documentStack.push(doc)
                 if not discrepancy: 

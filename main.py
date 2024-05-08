@@ -13,7 +13,7 @@ from typing      import Callable, ClassVar, NoReturn
 
 from modules.sockets import *
 
-VERSION = "2024.5.5-ALPHA"
+VERSION = "2024.5.8-ALPHA"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"
@@ -139,6 +139,11 @@ class GUI:
                     ''.join(traceback.format_exception(exception))
                 )
             )
+
+            if exception is None:
+                self.initBackend()
+                self.loadRuns()
+
             return None
         
         com, args = data

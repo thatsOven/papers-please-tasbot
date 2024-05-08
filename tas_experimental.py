@@ -7,8 +7,6 @@
 
 from tas import *
 
-from modules.frames import Frames
-
 import logging
 
 logger = logging.getLogger('tas.' + __name__)
@@ -21,8 +19,6 @@ NEW_MOUSE_OFFSET      = (2, 2)
 class NewTAS(TAS):
     def __init__(self):
         super().__init__()
-
-        self.frames = Frames()
         
         logger.info("**EXPERIMENTAL VERSION**")
         pg.PAUSE = 0.034 

@@ -129,11 +129,12 @@ class AccessPermit(Document):
     
     def __repr__(self) -> str:
         return f"""==- Access Permit -==
-name:       {self.name}
-nation:     {self.nation}
-number:     {self.number}
-purpose:    {self.purpose}
-duration:   {'FOREVER' if self.duration == PERMIT_DURATIONS['FOREVER'] else self.duration}
-height:     {self.height}
-weight:     {self.weight}
-expiration: {self.expiration}"""
+name:        {self.name}
+nation:      {self.nation}
+number:      {self.number}
+purpose:     {self.purpose}
+duration:    {'FOREVER' if self.duration == PERMIT_DURATIONS['FOREVER'] else self.duration}
+height:      {self.height}
+weight:      {self.weight}
+description: {self.description}
+expiration:  {self.expiration}"""

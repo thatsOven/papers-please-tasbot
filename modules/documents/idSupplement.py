@@ -84,6 +84,7 @@ class IDSupplement(Document):
     
     def __repr__(self) -> str:
         return f"""==- Identity Supplement -==
-height:     {self.height}
-weight:     {self.weight}
-expiration: {self.expiration}"""
+height:      {self.height}
+weight:      {self.weight}
+description: {self.description}
+expiration:  {self.expiration}"""

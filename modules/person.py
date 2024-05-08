@@ -1,5 +1,7 @@
 from PIL import Image
 
+from modules.constants.other import Description
+
 from modules.documents.document import BaseDocument
 from modules.faceRecognition    import Face, FaceType
 
@@ -22,6 +24,9 @@ class Person:
 
     def checkValidHeight(self, height: int) -> bool:
         return self.face is None or self.face.height - Face.HEIGHT_TOLERANCE_CM <= height <= self.face.height + Face.HEIGHT_TOLERANCE_CM
+    
+    def checkValidDescription(self, description: Description) -> bool:
+        return self.face is None or description in self.face.descriptions
 
     def __repr__(self) -> str:
         return f"""==- Person -==
