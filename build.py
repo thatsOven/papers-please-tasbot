@@ -30,7 +30,9 @@ DEPENDENCIES = [
     "lazy_loader",
     "scipy",
     "six",
-    "pyscreeze"
+    "pyscreeze",
+    "peachpy",
+    "pymem"
 ]
 
 COLLECT_ALL = [
