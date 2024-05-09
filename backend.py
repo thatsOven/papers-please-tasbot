@@ -44,13 +44,18 @@ class Backend:
         def run(self, method: RunMethod) -> None:
             self.tas.currRun = self.runs[self.currRun]
             self.tas.hwnd    = self.tas.getWinHWND()
+
+            self.tas.processEditor.init()
             win32com.client.Dispatch("WScript.Shell").SendKeys('%')
             win32gui.SetForegroundWindow(self.tas.hwnd)
+
             getattr(self.tas.currRun, 'run' if method == RunMethod.RUN else 'test')()
     else:
         def run(self, method: RunMethod) -> None:
             self.tas.currRun = self.runs[self.currRun]
             self.tas.winPos  = self.tas.getWinPos()
+            
+            self.tas.processEditor.init()
             getattr(self.tas.currRun, 'run' if method == RunMethod.RUN else 'test')()
 
     def select(self, idx: int) -> None:

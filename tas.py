@@ -49,6 +49,7 @@ from modules.transcription            import Transcription
 from modules.person                   import Person
 from modules.frames                   import Frames
 from modules.documentStack            import DocumentStack
+from modules.processEditor            import ProcessEditor
 from modules.documents.document       import Document, BaseDocument
 from modules.documents.entryTicket    import EntryTicket
 from modules.documents.entryPermit    import EntryPermit
@@ -79,10 +80,9 @@ class TAS:
         "debug": True
     }
 
-    DAY3_PICTURE_CHECK: ClassVar[bool]      = False
-    DAY4_PICTURE_CHECK: ClassVar[bool]      = True 
-    ID_CHECK: ClassVar[bool]                = True 
-    APPEARANCE_HEIGHT_CHECK: ClassVar[bool] = True 
+    DAY3_PICTURE_CHECK: ClassVar[bool] = False
+    DAY4_PICTURE_CHECK: ClassVar[bool] = True 
+    ID_CHECK: ClassVar[bool]           = True 
 
     # this is *really* slow, and wanted criminals don't happen that often,
     # so i'm keeping this off. it's not fully tested so enable at your own risk
@@ -205,6 +205,7 @@ class TAS:
         self.person        = Person()
         self.documentStack = DocumentStack(self)
         self.transcription = Transcription(self)
+        self.processEditor = ProcessEditor()
 
         logger.info("Preparing generic assets...")
         TAS.NEXT_BUBBLE = np.asarray(Image.open(
@@ -494,7 +495,7 @@ class TAS:
             )
 
             for h, t, in winList:
-                if t in ("Papers Please", "PapersPlease"):
+                if t in WINDOW_TITLES:
                     return h
                 
             raise TASException('No "Papers Please" window was found')

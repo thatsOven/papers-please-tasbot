@@ -13,7 +13,7 @@ from typing      import Callable, ClassVar, NoReturn
 
 from modules.sockets import *
 
-VERSION = "2024.5.8-ALPHA"
+VERSION = "2024.5.9-ALPHA"
 SETTINGS_VERSION = "1"
 
 MAIN_RESOLUTION     = "380x305"
@@ -23,7 +23,7 @@ GUI_FRAMERATE       = 20
 FRAME_SLEEP         = 1 / GUI_FRAMERATE
 GET_RUNS_ATTEMPTS   = 5
 
-STDOUT_REDIRECT = True
+STDOUT_REDIRECT = False
 
 PROGRAM_DIR = str(pathlib.Path(__file__).parent.absolute())
 FROZEN = getattr(sys, 'frozen', False) and hasattr(sys, "_MEIPASS")

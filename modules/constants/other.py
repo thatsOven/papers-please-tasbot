@@ -1,6 +1,9 @@
 from dateutil.relativedelta import relativedelta
 from enum import Enum
 
+WINDOW_TITLES = ("Papers Please", "PapersPlease")
+PROCESS_NAME  = "PapersPlease.exe"
+
 DRAG_TO_WITH_GIVE_THETA_INC = (0.75, 0.5)
 DRAG_TO_WITH_GIVE_POS_OFFS  = (0, 20)
 
@@ -12,27 +15,30 @@ OBRISTAN_TEXT_COLOR = (237, 224, 216)
 TRANSCRIPTION_BG_COLOR   = (210, 237, 236)
 TRANSCRIPTION_TEXT_COLOR = PASSPORT_TEXT_COLOR
 
+UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz"
+DIGITS            = "0123456789"
+
 # space is first cause end of text will be full of spaces, we want to recognize them first
 # lowercase characters are next because they're the most common character
 # uppercase characters show up like twice
-PASSPORT_NAME_CHARS = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ,-'" # commas show up once in passport names, dashes and apostrophes show up rarely
-PASSPORT_CITY_CHARS = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ."   # dots show up once at most in cities
-PASSPORT_NUM_CHARS  = " ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-"
-DIGITS              = "0123456789"
+PASSPORT_NAME_CHARS = " " + LOWERCASE_LETTERS + UPPERCASE_LETTERS + ",-'" # commas show up once in passport names, dashes and apostrophes show up rarely
+PASSPORT_CITY_CHARS = " " + LOWERCASE_LETTERS + UPPERCASE_LETTERS + "."   # dots show up once at most in cities
+PASSPORT_NUM_CHARS  = " " + UPPERCASE_LETTERS + DIGITS + "-"
 DATE_CHARS          = DIGITS + "."
 
-PERMIT_PASS_CHARS      = " ABCDEFGHIJKLMNOPQRSTUVWXYZ" # in permits and passes, everything is caps
+PERMIT_PASS_CHARS      = " " + UPPERCASE_LETTERS # in permits and passes, everything is caps
 WORK_PASS_FIELD_CHARS  = PERMIT_PASS_CHARS + "-"
 PERMIT_PASS_NAME_CHARS = WORK_PASS_FIELD_CHARS + "'"
 DISEASE_CHARS          = WORK_PASS_FIELD_CHARS + "."
-PERMIT_PASS_CHARS_NUM  = PERMIT_PASS_CHARS + "0123456789"
+PERMIT_PASS_CHARS_NUM  = PERMIT_PASS_CHARS + DIGITS
 
 ID_LAST_NAME_CHARS = PERMIT_PASS_CHARS + ",-'"
 
 DIPLOMATIC_AUTH_ACCESS_TO_CHARS = PERMIT_PASS_CHARS + ","
 
-HEIGHT_CHARS = "0123456789cm"
-WEIGHT_CHARS = "0123456789kg"
+HEIGHT_CHARS = DIGITS + "cm"
+WEIGHT_CHARS = DIGITS + "kg"
 
 TRANSCRIPTION_CHARS = PASSPORT_CITY_CHARS + DIGITS + "'?!"
 

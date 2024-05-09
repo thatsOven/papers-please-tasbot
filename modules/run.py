@@ -480,7 +480,7 @@ class Run(ABC):
             self.tas.moveTo(PAPER_SCAN_POS)
             return True
         
-        if self.tas.APPEARANCE_HEIGHT_CHECK:
+        if self.tas.DAY4_PICTURE_CHECK:
             self.tas.click(INSPECT_BUTTON)
             self.tas.click(onTable(centerOf(doc.getTableBox("picture"))))
             self.tas.click(PERSON_POS)

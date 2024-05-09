@@ -6,3 +6,4 @@ deskew
 scikit-image
 pywin32
 python-dateutil
+git+https://github.com/Maratyszcza/PeachPy
