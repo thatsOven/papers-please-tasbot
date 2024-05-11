@@ -113,7 +113,7 @@ class AccessPermit(Document):
     def description(self) -> Description:
         return Description(parseText(
             self.docImg.crop(AccessPermit.LAYOUT["description"]), AccessPermit.BACKGROUNDS["description"],
-            AccessPermit.TAS.FONTS["bm-mini"], AccessPermit.TEXT_COLOR,
+            AccessPermit.TAS.FONTS["bm-mini"], AccessPermit.TEXT_COLOR, DESCRIPTION_CHARS,
             endAt = "  "
         ))
     

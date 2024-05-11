@@ -67,12 +67,12 @@ class IDSupplement(Document):
         return Description((
             parseText(
                 self.docImg.crop(IDSupplement.LAYOUT["description-0"]), IDSupplement.BACKGROUNDS["description-0"],
-                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, DESCRIPTION_CHARS,
                 endAt = "  "
             ) + " " + 
             parseText(
                 self.docImg.crop(IDSupplement.LAYOUT["description-1"]), IDSupplement.BACKGROUNDS["description-1"],
-                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, PERMIT_PASS_NAME_CHARS,
+                IDSupplement.TAS.FONTS["bm-mini"], IDSupplement.TEXT_COLOR, DESCRIPTION_CHARS,
                 endAt = "  "
             )
         ).strip())
