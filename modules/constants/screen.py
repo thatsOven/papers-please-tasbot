@@ -135,7 +135,7 @@ RULEBOOK_DAY_27 = {
             "document-must-have-seal": (865, 550)
         },
         "vax-cert": {
-            "pos": (840, 520),
+            "pos": (840, 530),
             "polio-vax-required": (865, 520)
         }
     }

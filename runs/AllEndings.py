@@ -856,6 +856,8 @@ class AllEndings(Run):
         self.tas.daySetup()
 
         # vonel (just wait)
+        self.tas.shutter = True
+        self.tas.person.weight = 0
 
         self.tas.day27Check()
         
@@ -898,6 +900,8 @@ class AllEndings(Run):
             return
         
         # supervisor (just wait)
+        self.tas.shutter = True
+        self.tas.person.weight = 0
 
         self.tas.day27Check()
 
@@ -1181,36 +1185,36 @@ class AllEndings(Run):
         # self.tas.restartFrom((DAYS_X[-2], DAYS_Y[1]), self.tas.DAY_25)
         # self.day25(shae = True, bills = False)
         # self.day26(ending12 = False, bills = False)
+        # self.day27(ezic = True, bills = False)
+        # self.day28(mode = Day28Mode.KILL_CIVILIAN, bills = True)
+        # self.tas.ending5() 
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        # self.day28(mode = Day28Mode.TRANQ_CIVILIAN, bills = True)
+        # self.tas.ending6()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        # self.day28(mode = Day28Mode.KILL_GUARD, bills = True)
+        # self.tas.ending7()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        # self.day28(mode = Day28Mode.TRANQ_GUARD, bills = True)
+        # self.tas.ending8()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        # self.day28(mode = Day28Mode.DEFAULT, bills = False)
+        # self.tas.ending2()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
+        # self.day28(mode = Day28Mode.DEFAULT, bills = True)
+        # self.day29(getObri = False)
+        # self.day30(familyPic = True, givePhoto = False)
+        # self.tas.ending11()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_30)
+        # self.day30(familyPic = False, givePhoto = False)
         self.tas.startRun()
-        self.tas.date = date(1982, 12, 19)
-        self.day27(ezic = True, bills = False)
-        self.day28(mode = Day28Mode.KILL_CIVILIAN, bills = True)
-        self.tas.ending5() 
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
-        self.day28(mode = Day28Mode.TRANQ_CIVILIAN, bills = True)
-        self.tas.ending6()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
-        self.day28(mode = Day28Mode.KILL_GUARD, bills = True)
-        self.tas.ending7()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
-        self.day28(mode = Day28Mode.TRANQ_GUARD, bills = True)
-        self.tas.ending8()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
-        self.day28(mode = Day28Mode.DEFAULT, bills = False)
-        self.tas.ending2()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), self.tas.DAY_28)
-        self.day28(mode = Day28Mode.DEFAULT, bills = True)
-        self.day29(getObri = False)
-        self.day30(familyPic = True, givePhoto = False)
-        self.tas.ending11()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_30)
-        self.day30(familyPic = False, givePhoto = False)
+        self.tas.date = date(1982, 12, 24)
         self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.ALONE, ezic = True)
         self.tas.ending16()
 

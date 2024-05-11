@@ -21,7 +21,6 @@ class NewTAS(TAS):
         super().__init__()
         
         logger.info("**EXPERIMENTAL VERSION**")
-        pg.PAUSE = 0.034 
 
     def getScreen(self) -> Image.Image:
         realScreen = ImageGrab.grab(win32gui.GetWindowRect(self.hwnd)).convert("RGB").crop(FULLSCREEN_REAL_BOX)

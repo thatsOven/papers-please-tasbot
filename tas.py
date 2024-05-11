@@ -1555,13 +1555,14 @@ class TAS:
         self.dragTo(RULEBOOK_POS)
 
     def missingDoc(self, rule: str, Type_: Type[Document]) -> bool:
-        self.interrogateMissingDoc(rule)
-        self.putRulebookBack()
-
         if self.newData:
             tmp = self.lastGiveArea
             self.lastGiveArea = np.asarray(self.getScreen().crop(GIVE_AREA))
 
+        self.interrogateMissingDoc(rule)
+        self.putRulebookBack()
+
+        if self.newData:
             if not self.documentStack.moved:
                 self.documentStack.moved = True
                 self.moveTo(PAPER_SCAN_POS)
