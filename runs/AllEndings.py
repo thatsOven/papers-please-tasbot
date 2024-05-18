@@ -756,7 +756,7 @@ class AllEndings(Run):
         self.tas.next()
         self.tas.getTranqGun()
         # shoot attackers
-        first = self.tas.detectPeople(DAY_26_NDBIKE_AREA)[-1]
+        first = self.tas.detectPeople(DAY_26_28_NDBIKE_AREA)[-1]
         self.tas.click((first[0] - 20, first[1] - 15))
         self.tas.click((620, 200))
         self.tas.click((340, 110)) # this attacker is actually bugged and gets teleported back for some reason
@@ -837,10 +837,8 @@ class AllEndings(Run):
             case Day28Mode.KILL_GUARD | Day28Mode.TRANQ_GUARD:
                 self.tas.click((900, 123)) # shoot center guard
             case Day28Mode.DEFAULT:
-                # shoot intruder
-                self.tas.click((820, 190)) 
-                self.tas.click((815, 190)) 
-                self.tas.click((810, 190)) 
+                for pos in self.tas.detectPeople(DAY_26_28_NDBIKE_AREA, tranq = True):
+                    self.tas.click((pos[0] - 10, pos[1]))
 
                 self.tas.waitForSleepButton()
 
@@ -960,13 +958,12 @@ class AllEndings(Run):
         self.tas.next()
         if shootMode != Day31ShootMode.NO: 
             self.tas.getTranqGun()
-            self.tas.click((685, 195)) # shoot bottom attacker
+            next = self.tas.detectPeople(DAY_31_TOP_ATTACKER_AREA, DAY_31_ATTACKERS_COLOR, tranq = True)[:-1]
+            self.tas.click(self.tas.detectPeople(DAY_31_BOTTOM_ATTACKER_AREA, DAY_31_ATTACKERS_COLOR, tranq = True)[1]) # shoot bottom attacker
 
         match shootMode:
             case Day31ShootMode.SAVE_WALL:
-                # shoot other attacker (two shots to be safe)
-                self.tas.click((570, 95)) 
-                self.tas.click((565, 95))
+                for pos in next: self.tas.click((pos[0] - 5, pos[1])) 
             case Day31ShootMode.YES:
                 # shoot after wall is gone
                 time.sleep(1)
@@ -1213,26 +1210,26 @@ class AllEndings(Run):
 
         # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_30)
         # self.day30(familyPic = False, givePhoto = False)
+        # self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.ALONE, ezic = True)
+        # self.tas.ending16()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        # self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.NO, ezic = True)
+        # self.tas.ending14()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        # self.day31(shootMode = Day31ShootMode.YES, escapeMode = Day31EscapeMode.NO, ezic = True)
+        # self.tas.ending15()
+
+        # self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
+        # self.day31(shootMode = Day31ShootMode.NO, escapeMode = Day31EscapeMode.NO, ezic = True)
+        # self.tas.ending19()
+
+        # self.tas.restartFrom((DAYS_X[-5], DAYS_Y[2]), self.tas.DAY_27)
+        # self.day27(ezic = False, bills = True)
+        # self.day28(mode = Day28Mode.DEFAULT, bills = True)
         self.tas.startRun()
-        self.tas.date = date(1982, 12, 24)
-        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.ALONE, ezic = True)
-        self.tas.ending16()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
-        self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.NO, ezic = True)
-        self.tas.ending14()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
-        self.day31(shootMode = Day31ShootMode.YES, escapeMode = Day31EscapeMode.NO, ezic = True)
-        self.tas.ending15()
-
-        self.tas.restartFrom((DAYS_X[-1], DAYS_Y[2]), AllEndings.DAY_31)
-        self.day31(shootMode = Day31ShootMode.NO, escapeMode = Day31EscapeMode.NO, ezic = True)
-        self.tas.ending19()
-
-        self.tas.restartFrom((DAYS_X[-5], DAYS_Y[2]), self.tas.DAY_27)
-        self.day27(ezic = False, bills = True)
-        self.day28(mode = Day28Mode.DEFAULT, bills = True)
+        self.tas.date = date(1982, 12, 21)
         self.day29(getObri = True)
         self.day30(familyPic = False, givePhoto = True)
         self.day31(shootMode = Day31ShootMode.SAVE_WALL, escapeMode = Day31EscapeMode.WIFE, ezic = False)

@@ -1569,7 +1569,9 @@ class TAS:
                 self.dragTo(SLOTS[0])
             
             if self.transcription.waitFor(lambda: self.transcription.getMissingDocGiven(Type_.__name__)):
+                logger.info("missing document is available")
                 self.waitForGiveAreaChange(update = False)
+                logger.info("give area changed: got document")
                 doc = self.docScan()
 
                 discrepancy = self.checkDiscrepancies(doc)
@@ -1617,8 +1619,8 @@ class TAS:
         # click on bullets
         self.click(pg.center(pg.locate(TAS.BULLETS, self.getScreen())))
 
-    def detectPeople(self, area: tuple[int, int, int, int], *, tranq: bool = False) -> tuple[tuple[int, int], ...]:
-        ys, xs = np.where((np.asarray(self.getScreen().crop(area)) == PEOPLE_COLOR).all(axis = -1))
+    def detectPeople(self, area: tuple[int, int, int, int], color: tuple[int, int, int] = PEOPLE_COLOR, *, tranq: bool = False) -> tuple[tuple[int, int], ...]:
+        ys, xs = np.where((np.asarray(self.getScreen().crop(area)) == color).all(axis = -1))
         if tranq:
             return (
                 offsetPoint((xs[0           ], ys[0           ]), area[:2]), 
